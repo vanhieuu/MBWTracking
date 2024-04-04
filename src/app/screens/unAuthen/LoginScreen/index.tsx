@@ -35,7 +35,7 @@ const LoginScreen = (props: Props) => {
     <SafeAreaView style={styles.root} edges={['top']}>
       <Block block>
         <Block justifyContent="center" alignItems="center">
-          <Text>{params ? params : organization.result.company_name}</Text>
+          <Text colorTheme='black' >{params ? params : organization.result.company_name}</Text>
         </Block>
         <Block marginLeft={16} marginTop={40}>
           <Text

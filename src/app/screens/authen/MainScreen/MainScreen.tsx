@@ -44,7 +44,6 @@ const UNDEFINED_LOCATION = {
   latitude: 0,
   longitude: 0,
 };
-Mapbox.setAccessToken(MAPBOX_TOKEN);
 
 const MainScreen = () => {
   const theme = useTheme();
@@ -55,7 +54,7 @@ const MainScreen = () => {
   const locations = React.useRef<Location | any>();
   const [enabled, setEnabled] = React.useState(false);
   const [isMoving, setIsMoving] = React.useState(false);
-
+  const [updateLocations, setUpdateLocations] = React.useState<any>({});
   const [geofences, setGeofences] = React.useState<any[]>([]);
   const [odometer, setOdometer] = React.useState<any>(0);
   const [polygonGeofences, setPolygonGeofences] = React.useState<any[]>([]);
@@ -88,7 +87,7 @@ const MainScreen = () => {
     state => state.app.data?.dataCustomer,
     shallowEqual,
   );
-  const { elapsedTime, isRunning, toggleTimer } = useTimer()
+  const {elapsedTime, isRunning, toggleTimer} = useTimer();
   const appState = useRef<AppStateStatus>('unknown');
   const URL = useRef<string>(
     BASE_URL_MAP +
@@ -169,7 +168,7 @@ const MainScreen = () => {
 
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
       distanceFilter: 5,
-      stopTimeout: 5,
+      stopTimeout: 3,
       locationAuthorizationRequest: 'Always',
       backgroundPermissionRationale: {
         title:
@@ -211,7 +210,7 @@ const MainScreen = () => {
     };
   }, [locations.current]);
 
-  useDeepCompareEffect(() => {}, []);
+  useDeepCompareEffect(() => {}, [locations.current]);
 
   const backgroundErrorListener = useCallback(
     (errorCode: number) => {
@@ -269,6 +268,7 @@ const MainScreen = () => {
   const onMotionChange = async () => {
     let location = motionChangeEvent?.location;
     if (motionChangeEvent?.isMoving) {
+      setUpdateLocations(location);
       if (lastMotionChangeEvent) {
         setStopZones(previous => [
           ...previous,
@@ -281,6 +281,8 @@ const MainScreen = () => {
           },
         ]);
       }
+      locations.current = motionChangeEvent.location;
+
       setOdometer(motionChangeEvent.location.odometer);
       setStationaryLocation(UNDEFINED_LOCATION);
     } else {
@@ -304,6 +306,7 @@ const MainScreen = () => {
     if (!motionChangeEvent) return;
     onMotionChange();
   }, [motionChangeEvent]);
+  // console.log(locations.current,'motionChangeEvent');
 
   React.useEffect(() => {
     if (!geofencesChangeEvent) return;
@@ -386,7 +389,7 @@ const MainScreen = () => {
         backgroundErrorListener(error);
         console.warn('[getCurrentPosition] error: ', error);
       });
-  }, []);
+  }, [isMoving,onMotionChange]);
 
   // console.log(sortedData(dataCustomer),'sorted Data')
 
@@ -454,7 +457,6 @@ const MainScreen = () => {
     setGeofenceHitEvents(previous => [...previous, record]);
   };
 
-
   const createGeofenceMarker = (geofence: Geofence) => {
     return {
       radius: geofence.radius,
@@ -513,7 +515,7 @@ const MainScreen = () => {
 
   const startAnimation = useCallback(() => {
     Animated.timing(animatedValue, {
-      toValue: 650,
+      toValue: Dimensions.get('window').height - 300,
       duration: 500,
       useNativeDriver: true,
     }).start();
@@ -530,7 +532,7 @@ const MainScreen = () => {
     if (status === 'active') {
       setStatus('inActive');
       startAnimation();
-      toggleTimer()
+      toggleTimer();
       // BackgroundGeolocation.start();
       setIsMoving(true);
       BackgroundGeolocation.changePace(!isMoving);
@@ -539,7 +541,7 @@ const MainScreen = () => {
       setStatus('active');
       sortedData(dataCustomer);
       hideAnimated();
-      toggleTimer()
+      toggleTimer();
       onClickEnable(false);
       BackgroundGeolocation.changePace(!isMoving);
       setIsMoving(false);
@@ -548,7 +550,7 @@ const MainScreen = () => {
       // startAnimation();
     }
   };
-  
+
   // console.log(elapsedTime,'elap')
   // console.log(sortedData(dataCustomer), 'bbb');
   const clearMarkers = () => {
@@ -561,7 +563,8 @@ const MainScreen = () => {
     setGeofenceEvent(null);
   };
 
-  // console.log(value.current)
+  // console.log(updateLocations,'update Locations')
+  // console.log(motionChangeEvent,'motion change')
   return (
     <SafeAreaView style={styles.root} edges={['bottom']}>
       <TouchableOpacity style={styles.buttonTopLeft}>
@@ -639,9 +642,9 @@ const MainScreen = () => {
             visible={true}
             animated
             androidRenderMode="gps"
+            minDisplacement={5}
             showsUserHeadingIndicator={true}
           />
-          {/* </Block> */}
         </Mapbox.MapView>
 
         <FAB
@@ -679,9 +682,13 @@ const MainScreen = () => {
           <ContentView
             title="Quãng đường (km)"
             icon="IconMapping"
-            value={odometer}
+            value={Math.round(odometer) / 1000}
           />
-          <ContentView title="Thời gian (phút)" icon="IconClock" value={formatTime(elapsedTime)} />
+          <ContentView
+            title="Thời gian (phút)"
+            icon="IconClock"
+            value={formatTime(elapsedTime)}
+          />
         </Block>
         <Block
           marginTop={8}
@@ -693,8 +700,8 @@ const MainScreen = () => {
             title="Vận tốc (km/h)"
             icon="IconOdometer"
             value={
-              locations?.current?.speed > 0
-                ? Math.floor(locations?.current.speed) * 3.6
+              motionChangeEvent?.isMoving
+                ? Math.round(motionChangeEvent?.location.coords.speed! * 3.6)
                 : 0
             }
           />
@@ -705,7 +712,7 @@ const MainScreen = () => {
               locations?.current?.battery.level
                 ? locations?.current?.battery.level < 0
                   ? -locations?.current.battery.level * 100
-                  : locations?.current.battery.levels * 100
+                  : locations?.current.battery.level * 100
                 : 0
             }
           />
@@ -736,13 +743,14 @@ const rootStyles = (theme: AppTheme) =>
         backgroundColor: 'white',
         position: 'absolute',
         bottom:
-          status != 'active' ? Dimensions.get('window').height / 2.5 + 10 : 160,
+          status != 'active' ? Dimensions.get('window').height / 2.1 + 10 : 170,
         zIndex: 99999999,
       } as ViewStyle),
     buttonGetCurrent2: (status: string) =>
       ({
         backgroundColor: 'white',
-        bottom: status != 'active' ? Dimensions.get('window').height / 3 : 90,
+        bottom:
+          status != 'active' ? Dimensions.get('window').height / 2.5 : 100,
         zIndex: 99999999,
       } as ViewStyle),
     startTracking: (status: string) =>
@@ -783,6 +791,5 @@ const rootStyles = (theme: AppTheme) =>
       zIndex: 90000,
       marginLeft: 20,
       marginTop: 40,
-      
     } as ViewStyle,
   });

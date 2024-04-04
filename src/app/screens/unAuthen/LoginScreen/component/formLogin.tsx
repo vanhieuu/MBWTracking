@@ -77,12 +77,12 @@ const FormLoginComponents = (props: Props) => {
               borderColor={theme.colors.black}
             />
           </TouchableOpacity>
-          <Text>Lưu mật khẩu</Text>
+          <Text colorTheme='black' >Lưu mật khẩu</Text>
         </Block>
 
         <Block>
           <TouchableOpacity>
-            <Text>Quên mật khâu</Text>
+            <Text colorTheme='black'>Quên mật khâu</Text>
           </TouchableOpacity>
         </Block>
       </Block>

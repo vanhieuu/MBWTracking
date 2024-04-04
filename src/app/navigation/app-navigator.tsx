@@ -11,9 +11,9 @@ import Mapbox from '@rnmapbox/maps';
 import {MAPBOX_TOKEN} from '@config/app.const';
 
 Mapbox.setAccessToken(MAPBOX_TOKEN);
-if (Platform.OS === 'android') {
-  Mapbox.setConnected(true);
-}
+// if (Platform.OS === 'android') {
+//   Mapbox.setConnected(true);
+// }
 
 export const AppNavigator = () => {
   const theme = useSelector(state => state.app.theme, shallowEqual);

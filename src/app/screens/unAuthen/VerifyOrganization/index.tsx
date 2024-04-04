@@ -22,7 +22,7 @@ import { STT_OK } from '@config/api.const';
 
 type Props = {};
 
-const SelectOrganization = (props: Props) => {
+const SelectOrganization = () => {
   const theme = useTheme();
   const styles = rootStyles(theme);
   const [langCode, setLangCode] = useMMKVString(Language_Code ?? 'vi');
@@ -54,9 +54,9 @@ const SelectOrganization = (props: Props) => {
   };
 
 
-  const  state = getState('login')
 
-  console.log(state,'login state')
+
+  
   useEffect(() => {
     if (!langCode) {
       setLangCode('vi');
