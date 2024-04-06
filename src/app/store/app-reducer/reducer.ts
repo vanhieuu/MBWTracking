@@ -9,7 +9,7 @@ const initialAppState: IAppRedux = {
   theme: 'default',
   loadingApp: false,
   currentLocation: {},
-  systemConfig: {},
+  travelHistory:{},
   showModal: false,
   isProcessing: true,
   data: {},
@@ -56,9 +56,6 @@ const appSlice = createSlice({
       state.error = action.payload;
     },
 
-    setSystemConfig: (state, action: PayloadAction<any>) => {
-      state.systemConfig = action.payload;
-    },
     setDataCity: (state, action: PayloadAction<any>) => {
       state.listDataCity.city = action.payload;
     },
@@ -77,7 +74,8 @@ const appSlice = createSlice({
       void (state.automaticLocation = action.payload);
     },
     setDataCustomer: (state, action: PayloadAction<any>) =>
-      void(state.data.dataCustomer = action.payload),
+      void (state.data.dataCustomer = action.payload),
+    setTravelHistory:(state,action:PayloadAction<any>) => void(state.travelHistory = action.payload)
   },
 });
 
@@ -87,10 +85,19 @@ const postOrganization = createAction(
   Actions.POST_ORGANIZATION,
   (data: any) => ({payload: data}),
 );
+
+const getUserInfor = createAction(Actions.GET_USER_INFOR);
+const getTravelHistoryAction = createAction(
+  Actions.GET_TRAVEL_HISTORY,
+  (from_time: any, to_time: any) => ({payload: {from_time, to_time}}),
+);
+
 export const appActions = {
   ...appSlice.actions,
   getCustomerRouteAction,
   postOrganization,
+  getUserInfor,
+  getTravelHistoryAction
 };
 
 export const appReducer = appSlice.reducer;

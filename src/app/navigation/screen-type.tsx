@@ -10,6 +10,7 @@ export enum APP_SCREENS {
   UN_AUTHORIZED = 'UN_AUTHORIZED',
   AUTHORIZED = 'AUTHORIZED',
   VERIFY_ORGANIZATION = 'VERIFY_ORGANIZATION',
+  SETTING = 'SETTING'
 }
 
 export type UnAuthenParamList = {
@@ -27,6 +28,7 @@ export type AuthenParamList = {
   [APP_SCREENS.CHANGE_PASSWORD]: undefined;
   [APP_SCREENS.PROFILE]: undefined;
   [APP_SCREENS.TRAVEL_HISTORY]: undefined;
+  [APP_SCREENS.SETTING]:undefined
 };
 
 export type RootStackParamsList = {

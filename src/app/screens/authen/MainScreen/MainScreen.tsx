@@ -8,9 +8,9 @@ import {
   ViewStyle,
 } from 'react-native';
 import React, {useCallback, useRef} from 'react';
-import {Text, Block, FAB, Icon, SvgIcon} from '@components';
+import {Text, Block, FAB, SvgIcon} from '@components';
 import Mapbox from '@rnmapbox/maps';
-import {MAPBOX_TOKEN, MAP_TITLE_URL} from '@config/app.const';
+import {MAP_TITLE_URL} from '@config/app.const';
 import {AppTheme, useTheme} from '@theme';
 import BackgroundGeolocation, {
   Geofence,
@@ -38,6 +38,8 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {appActions} from '@store/app-reducer/reducer';
 import MarkerItem from './components/MarkerItem';
 import ContentView from './components/ContentView';
+import {navigate} from '@navigation/navigation-service';
+import {APP_SCREENS} from '@navigation/screen-type';
 
 const UNDEFINED_LOCATION = {
   timestamp: '',
@@ -54,7 +56,7 @@ const MainScreen = () => {
   const locations = React.useRef<Location | any>();
   const [enabled, setEnabled] = React.useState(false);
   const [isMoving, setIsMoving] = React.useState(false);
-  const [updateLocations, setUpdateLocations] = React.useState<any>({});
+  // const [updateLocations, setUpdateLocations] = React.useState<any>({});
   const [geofences, setGeofences] = React.useState<any[]>([]);
   const [odometer, setOdometer] = React.useState<any>(0);
   const [polygonGeofences, setPolygonGeofences] = React.useState<any[]>([]);
@@ -90,7 +92,7 @@ const MainScreen = () => {
   const {elapsedTime, isRunning, toggleTimer} = useTimer();
   const appState = useRef<AppStateStatus>('unknown');
   const URL = useRef<string>(
-    BASE_URL_MAP +
+    BASE_URL_MAP + 'position/'+
       `${loginState.projectId ?? '6600fdbb9058b549ce243e5b'}` +
       `/${loginState.objectId ?? '65eadedc973f307f60fdd6ed'}` +
       `?api_key=${API_EK_KEY}`,
@@ -254,7 +256,6 @@ const MainScreen = () => {
           timeout: 30,
           samples: 2,
         });
-        console.log('[getCurrentPosition]', location);
         locations.current = location;
         BackgroundFetch.finish(taskId);
       },
@@ -268,7 +269,7 @@ const MainScreen = () => {
   const onMotionChange = async () => {
     let location = motionChangeEvent?.location;
     if (motionChangeEvent?.isMoving) {
-      setUpdateLocations(location);
+      // setUpdateLocations(location);
       if (lastMotionChangeEvent) {
         setStopZones(previous => [
           ...previous,
@@ -305,7 +306,7 @@ const MainScreen = () => {
   React.useEffect(() => {
     if (!motionChangeEvent) return;
     onMotionChange();
-  }, [motionChangeEvent]);
+  }, [motionChangeEvent,odometer]);
   // console.log(locations.current,'motionChangeEvent');
 
   React.useEffect(() => {
@@ -377,8 +378,6 @@ const MainScreen = () => {
     })
       .then((location: Location) => {
         locations.current = location;
-
-        // sortedData(dataCustomer)
         mapboxCameraRef.current?.flyTo(
           [location.coords.longitude, location.coords.latitude],
           1000,
@@ -389,10 +388,10 @@ const MainScreen = () => {
         backgroundErrorListener(error);
         console.warn('[getCurrentPosition] error: ', error);
       });
-  }, [isMoving,onMotionChange]);
+  }, [isMoving]);
 
   // console.log(sortedData(dataCustomer),'sorted Data')
-
+  // console.log(coordinates,'coordinates')
   const onGeofence = () => {
     const location: Location | any = geofenceEvent?.location;
     // Push our geofence event coordinate onto the Polyline -- BGGeo deosn't fire onLocation for geofence events.
@@ -567,7 +566,9 @@ const MainScreen = () => {
   // console.log(motionChangeEvent,'motion change')
   return (
     <SafeAreaView style={styles.root} edges={['bottom']}>
-      <TouchableOpacity style={styles.buttonTopLeft}>
+      <TouchableOpacity
+        style={styles.buttonTopLeft}
+        onPress={() => navigate(APP_SCREENS.ACCOUNT_SETTINGS)}>
         <Block
           colorTheme="white"
           width={40}
@@ -601,7 +602,7 @@ const MainScreen = () => {
             ]}
             animationMode={'flyTo'}
             animationDuration={500}
-            zoomLevel={11}
+            zoomLevel={15}
           />
           {/* <Poly */}
           <Mapbox.RasterSource
@@ -616,25 +617,17 @@ const MainScreen = () => {
           {dataCustomer && dataCustomer.length > 0
             ? dataCustomer.map((item, index) => {
                 const newLocation = JSON.parse(item.customer_location_primary!);
-                if (
-                  sortedData(dataCustomer)[index] <= 0.5 &&
-                  status != 'active'
-                ) {
-                  return (
-                    <Mapbox.MarkerView
-                      key={index}
-                      coordinate={[
-                        Number(newLocation.long),
-                        Number(newLocation.lat),
-                      ]}>
-                      <MarkerItem
-                        item={item}
-                        index={index}
-                        onPress={() => {}}
-                      />
-                    </Mapbox.MarkerView>
-                  );
-                }
+
+                return (
+                  <Mapbox.MarkerView
+                    key={index}
+                    coordinate={[
+                      Number(newLocation.long),
+                      Number(newLocation.lat),
+                    ]}>
+                    <MarkerItem item={item} index={index} onPress={() => {}} />
+                  </Mapbox.MarkerView>
+                );
               })
             : null}
           {/* <Block zIndex={99999} position='absolute'> */}
@@ -700,7 +693,7 @@ const MainScreen = () => {
             title="Vận tốc (km/h)"
             icon="IconOdometer"
             value={
-              motionChangeEvent?.isMoving
+              isMoving && locations?.current?.coords.speed > 0
                 ? Math.round(motionChangeEvent?.location.coords.speed! * 3.6)
                 : 0
             }

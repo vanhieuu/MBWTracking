@@ -11,4 +11,9 @@ export function* appSaga() {
     appActions.postOrganization.type.toString(),
     Saga.verifyOrganizationSagas,
   );
+  yield* takeLatest(appActions.getUserInfor.type.toString(), Saga.getUserInfor);
+  yield* takeLatest(
+    appActions.getTravelHistoryAction.type.toString(),
+    Saga.getTravelHistory,
+  );
 }

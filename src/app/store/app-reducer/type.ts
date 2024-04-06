@@ -1,3 +1,4 @@
+import { MapResponse } from '@common';
 import {ThemeType} from '@theme';
 
 export interface ListCity {
@@ -27,7 +28,7 @@ export interface IAppRedux {
   theme: ThemeType;
   loadingApp?: boolean;
   isProcessing?:boolean
-  systemConfig?: any;
+  travelHistory?: MapResponse | any;
   currentLocation?: any;
   listDataCity: {
     city: ListCity[];
@@ -50,6 +51,8 @@ export enum SLICE_NAME {
   GET_LIST_WARD = 'GET_LIST_WARD_',
   GET_LIST_CUSTOMER = 'GET_LIST_CUSTOMER_',
   POST_ORGANIZATION = 'POST_ORGANIZATION_',
+  GET_USER_INFOR = 'GET_USER_INFOR_',
+  GET_TRAVEL_HISTORY = 'GET_TRAVEL_HISTORY_',
 }
 
 // export const RESET_APP = 'RESET_APP_RESET_APP';
@@ -69,3 +72,5 @@ export enum SLICE_NAME {
 //   'SET_SEARCH_CUSTOMER_VALUE_SET_SEARCH_CUSTOMER_VALUE';
 export const GET_LIST_CUSTOMER =  SLICE_NAME.GET_LIST_CUSTOMER + 'GET_LIST_CUSTOMER'
 export const POST_ORGANIZATION = SLICE_NAME.POST_ORGANIZATION  + 'POST_ORGANIZATION'
+export const GET_USER_INFOR = SLICE_NAME.GET_USER_INFOR + 'GET_USER_INFOR_'
+export const GET_TRAVEL_HISTORY = SLICE_NAME.GET_TRAVEL_HISTORY + 'GET_TRAVEL_HISTORY'

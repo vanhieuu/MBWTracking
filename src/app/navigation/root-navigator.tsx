@@ -19,7 +19,9 @@ const RootNavigator = () => {
   // console.log(state,'state')
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      { loginState && Object.keys(loginState) && Object.keys(loginState).length > 0 ? (
+      {loginState &&
+      Object.keys(loginState) &&
+      Object.keys(loginState).length > 0 ? (
         <Stack.Screen
           name={APP_SCREENS.AUTHORIZED}
           component={AuthenNavigator}

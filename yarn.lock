@@ -5780,6 +5780,11 @@ mkdirp@^0.5.1:
   dependencies:
     minimist "^1.2.6"
 
+moment@^2.30.1:
+  version "2.30.1"
+  resolved "https://registry.yarnpkg.com/moment/-/moment-2.30.1.tgz#f8c91c07b7a786e30c59926df530b4eac96974ae"
+  integrity sha512-uEmtNhbDOrWPFS+hdjFCBfy9f2YoyzRpwcl+DqpC6taX21FzsTLQVbMV/W7PzNSX6x/bhC1zA3c2UQ5NzH6how==
+
 ms@2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.0.0.tgz#5608aeadfc00be6c2901df5f9861788de0d597c8"
@@ -6352,6 +6357,16 @@ react-native-background-geolocation@^4.15.2:
   integrity sha512-YxHs9CgsTLCNSeZVmBzAr/rkhV2K5lwWs/8Nj6wxjwPpzA4ngPEg87W+8kaIhEPLb6PK2TMMMj6Mv9WcARcaBg==
   dependencies:
     react-native-background-fetch "~4.2.1"
+
+react-native-click-outside@^0.1.1:
+  version "0.1.1"
+  resolved "https://registry.yarnpkg.com/react-native-click-outside/-/react-native-click-outside-0.1.1.tgz#1bab6979d3b9fd290e05fe3e99b8e1cf8ba72952"
+  integrity sha512-gNLLTGG4sdajzE1m2nHP2JtFN/COznGgS98r8IC7IClIkoNtdAtYOPpNvXGv/Hav6ra4qVtSJUFEyb19TuKneQ==
+
+react-native-date-picker@^5.0.0:
+  version "5.0.0"
+  resolved "https://registry.yarnpkg.com/react-native-date-picker/-/react-native-date-picker-5.0.0.tgz#0677eed02f59785e172aca6c07e4997817d2e95e"
+  integrity sha512-ApTKpZocalFCDMfczY34ugo85oQJfYO4VKqAxrtSFolzJdUqIJXa8ot0PIINokVI1O2X2L5hLboeqrM84GNfpQ==
 
 react-native-dotenv@^3.4.11:
   version "3.4.11"

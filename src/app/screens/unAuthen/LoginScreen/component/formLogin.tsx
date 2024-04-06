@@ -82,7 +82,7 @@ const FormLoginComponents = (props: Props) => {
 
         <Block>
           <TouchableOpacity>
-            <Text colorTheme='black'>Quên mật khâu</Text>
+            <Text colorTheme='primary'>Quên mật khâu</Text>
           </TouchableOpacity>
         </Block>
       </Block>

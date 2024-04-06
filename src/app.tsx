@@ -8,6 +8,7 @@ import {AppNavigator} from '@navigation/app-navigator';
 import {PortalProvider} from '@components';
 import {Provider} from 'react-redux';
 import {store} from '@store/store';
+import {ClickOutsideProvider} from 'react-native-click-outside';
 
 export const MyApp = () => {
   useEffect(() => {
@@ -30,7 +31,9 @@ export const MyApp = () => {
           <I18nextProvider i18n={I18n}>
             <Suspense fallback={null}>
               <PortalProvider>
-                <AppNavigator />
+                <ClickOutsideProvider>
+                  <AppNavigator />
+                </ClickOutsideProvider>
               </PortalProvider>
             </Suspense>
           </I18nextProvider>

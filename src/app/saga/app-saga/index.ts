@@ -1,13 +1,18 @@
-import {ResponseGenerator} from '@common';
+import {MapResponse, ResponseGenerator} from '@common';
 import {PayloadAction} from '@reduxjs/toolkit';
 import {appActions, setError} from '@store/app-reducer/reducer';
-import {apiGetListCustomer} from '../../store/api/appApi';
+import {
+  apiGetListCustomer,
+  apiGetTravelHistory,
+  apiGetUserProfile,
+} from '../../store/api/appApi';
 import {call, put} from 'typed-redux-saga';
-import { apiVerifyOrganization } from '../../store/api/loginApi';
-import { STT_OK } from '@config/api.const';
-import { navigate } from '@navigation/navigation-service';
-import { APP_SCREENS } from '@navigation/screen-type';
-import { loginActions } from '@store/login-reducer/reducer';
+import {apiVerifyOrganization} from '../../store/api/loginApi';
+import {STT_OK} from '@config/api.const';
+import {navigate} from '@navigation/navigation-service';
+import {APP_SCREENS} from '@navigation/screen-type';
+import {loginActions} from '@store/login-reducer/reducer';
+import {showSnack} from '@components';
 
 export function* getListCustomerRouter(action: PayloadAction) {
   if (appActions.getCustomerRouteAction.match(action)) {
@@ -23,6 +28,41 @@ export function* getListCustomerRouter(action: PayloadAction) {
     }
   }
 }
+export function* getTravelHistory(action: PayloadAction) {
+  if (appActions.getTravelHistoryAction.match(action)) {
+    try {
+      const response: MapResponse = yield call(
+        apiGetTravelHistory,
+        action.payload.from_time,
+        action.payload.to_time,
+      );
+      if (response.positions && response.positions.length > 0) {
+        yield put(appActions.setTravelHistory(response));
+      }
+      // if(response.)
+    } catch (err) {
+      console.log(['error travel history: ', err]);
+    }
+  }
+}
+
+export function* getUserInfor(action: PayloadAction) {
+  if (appActions.getUserInfor.match(action)) {
+    try {
+      const response: ResponseGenerator = yield call(apiGetUserProfile);
+      if (Object.keys(response?.result).length > 0) {
+        yield put(appActions.setUserProfile(response.result));
+      }
+    } catch (err) {
+      showSnack({
+        msg: 'Lỗi khi lấy dữ liệu, vui lòng thử lại',
+        type: 'error',
+        interval: 2000,
+      });
+    }
+  }
+}
+
 export function* verifyOrganizationSagas(action: PayloadAction) {
   if (appActions.postOrganization.match(action)) {
     try {
@@ -30,7 +70,7 @@ export function* verifyOrganizationSagas(action: PayloadAction) {
         apiVerifyOrganization,
         action.payload,
       );
-      console.log(response,'response body')
+      console.log(response, 'response body');
       if (response.status === STT_OK) {
         yield put(loginActions.setResponseOrganization(response.data.result));
         navigate(APP_SCREENS.LOGIN, {

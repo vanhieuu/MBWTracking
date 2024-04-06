@@ -65,3 +65,76 @@ export type ListCustomerRouter = {
   customer_primary_address:string,
   is_checkin:boolean
 }
+export type UserInforType = {
+  cell_number: string
+  current_address: string
+  date_of_birth: string
+  date_of_joining: string
+  department: any
+  designation: any
+  employee: string
+  employee_name: string
+  gender: string
+  image: string
+  salutation: any
+  user_id: string
+}
+
+export interface MapResponse {
+  summary: Summary
+  positions: PositionMapResponse[]
+  resultInfo: ResultInfo
+}
+
+export interface Summary {
+  _id: string
+  name: string
+}
+
+export interface PositionMapResponse {
+  coords: CoordsMapResponse
+  extras: ExtrasMapResponse
+  activity: ActivityMapResponse
+  geofence: GeofenceMapResponse
+  battery: BatteryMapResponse
+  uuid: string
+  event?: string
+  is_moving: boolean
+  odometer: number
+  timestamp: string
+}
+
+export type CoordsMapResponse = {
+  speed_accuracy: number
+  speed: number
+  longitude: number
+  ellipsoidal_altitude: number
+  floor: any
+  heading_accuracy: number
+  latitude: number
+  accuracy: number
+  altitude_accuracy: number
+  altitude: number
+  heading: number
+}
+export interface ExtrasMapResponse {
+  getCurrentPosition?: boolean
+}
+
+export interface ActivityMapResponse {
+  type: string
+  confidence: number
+}
+
+export interface GeofenceMapResponse {}
+
+export interface BatteryMapResponse {
+  level: number
+  is_charging: boolean
+}
+
+export interface ResultInfo {
+  maxResults: number
+  pageNumber: number
+  itemsCount: number
+}

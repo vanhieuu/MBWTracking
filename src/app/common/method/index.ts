@@ -1,6 +1,6 @@
 import {remove} from '@utils';
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {Alert, Platform} from 'react-native';
+import {Alert, Dimensions, Platform} from 'react-native';
 import NetInfo from '@react-native-community/netinfo';
 
 import {R} from '@assets/value';
@@ -57,3 +57,4 @@ export const formatTime = (seconds: any) => {
 
   return `${pad(minutes)}`;
 };
+export const {width,height} = Dimensions.get('window')

@@ -27,7 +27,7 @@ const SelectOrganization = () => {
   const styles = rootStyles(theme);
   const [langCode, setLangCode] = useMMKVString(Language_Code ?? 'vi');
   const [langData, setLangData] = React.useState<LanguageItemType[]>(LANG_LIST);
-  const [_, setOrganization] = useMMKVObject<IResOrganization>(Organization);
+  // const [_, setOrganization] = useMMKVObject<IResOrganization>(Organization);
   const handleChangeLang = () => {};
 
   const onConfirmData = async (data: any) => {
@@ -40,7 +40,7 @@ const SelectOrganization = () => {
       });
       console.log('run bitch ')
       dispatch(loginActions.setResponseOrganization(result.data.result));
-      setOrganization(result.data.result);
+      // setOrganization(result.data.result);
       
     } else {
       showSnack({

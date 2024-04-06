@@ -21,3 +21,5 @@ export const POST_RESET_PASSWORD = URL_PREFIX + '.auth.reset_password';
 export const PUT_USER_PROFILE =
   '/api/method/mbw_service_v2.api.user.update_profile';
 export const GET_LIST_ROUTER_MAP_VIEW = '/api/method/mbw_dms.api.router.get_customer_router?view_mode=map'
+export const GET_USER_PROFILE =
+  '/api/method/mbw_account_service.api.user.get_employee_info';
