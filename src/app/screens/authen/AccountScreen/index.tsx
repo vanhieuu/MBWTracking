@@ -62,7 +62,7 @@ const AccountScreen = (props: Props) => {
       useNativeDriver: true,
     }).start();
   };
-  const onPressLanguage = () => {
+  const onPressLanguage = useCallback(() => {
     console.log(status);
     if (status === 'inActive') {
       setStatus('active');
@@ -71,7 +71,7 @@ const AccountScreen = (props: Props) => {
       setStatus('inActive');
       hideAnimation();
     }
-  };
+  },[status,animatedValue]);
 
   const onSelectItem = (id: string, code: string) => {
     const newLangData = langData.map(item => {
@@ -155,7 +155,7 @@ const AccountScreen = (props: Props) => {
         <HeaderAvatar userInfor={userInfor} />
         <Block
           collapsable={false}
-          colorTheme="white"
+          colorTheme="bg_default"
           marginLeft={16}
           marginRight={16}
           borderRadius={10}>

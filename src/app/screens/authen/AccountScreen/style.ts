@@ -9,7 +9,7 @@ export const rootStyles = (theme: AppTheme) =>
       backgroundColor: theme.colors.bg_neutral,
     } as ViewStyle,
     logoutButton: {
-      backgroundColor: theme.colors.white,
+      backgroundColor: theme.colors.bg_default,
       marginHorizontal: 16,
       justifyContent: 'center',
       alignItems: 'center',
@@ -26,7 +26,7 @@ export const rootStyles = (theme: AppTheme) =>
       borderTopRightRadius: 28,
       justifyContent: 'flex-start',
       alignItems: 'center',
-      backgroundColor: theme.colors.white,
+      backgroundColor: theme.colors.bg_default,
       flex: 1,
     } as ViewStyle,
     langSelectButton: {

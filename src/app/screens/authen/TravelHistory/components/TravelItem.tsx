@@ -63,7 +63,7 @@ const TravelItem = (props: Props) => {
           <Text>
             {' '}
             <SvgIcon source="TinyMapPin" size={14} colorTheme="white" />{' '}
-            {props.item.odometer} km
+            {props.item.odometer > 0 ? props.item.odometer/1000 : props.item.odometer} km
           </Text>
         </Block>
       </Block>

@@ -1,4 +1,5 @@
 import {IconTypes} from '@assets/icon';
+import { API_REVERSE_KEY } from './createApi';
 
 export const Api_key = 'Api_key';
 export const Api_secret = 'Api_secret';
@@ -8,6 +9,8 @@ export const MAPBOX_TOKEN =
 export const MAP_TITLE_URL = {
   adminMap:
     'https://api.ekgis.vn/v1/maps/roadmap/{z}/{x}/{y}.png?api_key=oR8BDxoEoVUhPVfUP5fFGZkB5veGbADBwMYeJNYY',
+  nightMap:
+    `https://api.ekgis.vn/v2/mapstyles/style/osmplus/dark/style.json?api_key=${API_REVERSE_KEY}`,
 };
 export const Organization = 'organization';
 export const Language_Code = 'Language_Code';

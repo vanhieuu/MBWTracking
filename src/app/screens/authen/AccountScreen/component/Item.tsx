@@ -1,4 +1,4 @@
-import {Animated, Dimensions, TouchableOpacity} from 'react-native';
+import { TouchableOpacity} from 'react-native';
 import React, {useRef} from 'react';
 import {ItemType} from '../type';
 import {Block, LangItem, SvgIcon, Text} from '@components';
@@ -29,10 +29,8 @@ const Item = (props: Props) => {
         props.data.navigateAble
           ? navigate(props.data.screen!)
           : props.data.dropAble
-          ?  props.onPressChangeLang()
-          : dispatch(
-            appActions.onSetAppTheme(theme.dark ? 'default' : 'dark'),
-          );
+          ? props.onPressChangeLang()
+          : dispatch(appActions.onSetAppTheme(theme.dark ? 'default' : 'dark'));
       }}
       style={styles.containItem}>
       <Block direction="row" alignItems="center">
@@ -56,12 +54,19 @@ const Item = (props: Props) => {
       ) : props.data.isToggle ? (
         <Block>
           <Switch
-            value={theme.dark}
-            onValueChange={() =>
-              dispatch(
-                appActions.onSetAppTheme(theme.dark ? 'default' : 'dark'),
-              )
-            }
+            // color={theme.colors.success}
+            trackColor={{
+              false: theme.colors.bg_disable,
+              true: theme.colors.success,
+            }}
+            value={props.data.icon === 'IconDarkMode' ? theme.dark : false}
+            onValueChange={() => {
+              props.data.icon === 'IconDarkMode'
+                ? dispatch(
+                    appActions.onSetAppTheme(theme.dark ? 'default' : 'dark'),
+                  )
+                : {};
+            }}
           />
         </Block>
       ) : null}

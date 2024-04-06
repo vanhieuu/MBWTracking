@@ -51,11 +51,13 @@ const MainScreen = () => {
   const theme = useTheme();
   const mapboxCameraRef = useRef<Mapbox.Camera>(null);
   const styles = rootStyles(theme);
+  const appTheme = useSelector(state => state.app.theme, shallowEqual);
 
   //Locations
   const locations = React.useRef<Location | any>();
   const [enabled, setEnabled] = React.useState(false);
   const [isMoving, setIsMoving] = React.useState(false);
+  const [modalShow, setModalShow] = React.useState(false);
   // const [updateLocations, setUpdateLocations] = React.useState<any>({});
   const [geofences, setGeofences] = React.useState<any[]>([]);
   const [odometer, setOdometer] = React.useState<any>(0);
@@ -92,7 +94,8 @@ const MainScreen = () => {
   const {elapsedTime, isRunning, toggleTimer} = useTimer();
   const appState = useRef<AppStateStatus>('unknown');
   const URL = useRef<string>(
-    BASE_URL_MAP + 'position/'+
+    BASE_URL_MAP +
+      'position/' +
       `${loginState.projectId ?? '6600fdbb9058b549ce243e5b'}` +
       `/${loginState.objectId ?? '65eadedc973f307f60fdd6ed'}` +
       `?api_key=${API_EK_KEY}`,
@@ -306,7 +309,7 @@ const MainScreen = () => {
   React.useEffect(() => {
     if (!motionChangeEvent) return;
     onMotionChange();
-  }, [motionChangeEvent,odometer]);
+  }, [motionChangeEvent, odometer]);
   // console.log(locations.current,'motionChangeEvent');
 
   React.useEffect(() => {
@@ -587,7 +590,11 @@ const MainScreen = () => {
           zoomEnabled
           scrollEnabled
           logoEnabled={false}
-          styleURL={Mapbox.StyleURL.Street}
+          styleURL={
+            appTheme === 'dark'
+              ? MAP_TITLE_URL.nightMap
+              : Mapbox.StyleURL.Street
+          }
           style={styles.mapView}>
           <Mapbox.Camera
             ref={mapboxCameraRef}
@@ -617,7 +624,6 @@ const MainScreen = () => {
           {dataCustomer && dataCustomer.length > 0
             ? dataCustomer.map((item, index) => {
                 const newLocation = JSON.parse(item.customer_location_primary!);
-
                 return (
                   <Mapbox.MarkerView
                     key={index}
