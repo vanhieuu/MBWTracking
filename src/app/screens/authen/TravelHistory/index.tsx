@@ -27,10 +27,9 @@ const TravelHistory = () => {
     state => state.app.travelHistory,
     shallowEqual,
   );
-  // const [contentDate,setContentDate] = useState<string>(moment(new Date()).format('DD/MM/YYYY'))
 
-  // Format the start of the day
   const startOfDay = useRef(new Date(currentDate.current)).current;
+
   const startOfDayString = `${startOfDay.getFullYear()}-${String(
     startOfDay.getMonth() + 1,
   ).padStart(2, '0')}-${String(startOfDay.getDate()).padStart(
@@ -56,15 +55,14 @@ const TravelHistory = () => {
     };
   }, [currentDate.current]);
   // console.log(langCode)
+  console.log(startOfDayString,'start day string')
 
-  const onBackAndBackPropPress = useCallback(() => {
-    setShowPicker(false);
-  }, [currentDate]);
+
   const onCancel = useCallback(() => {
     setDate(new Date());
     currentDate.current = new Date();
     setShowPicker(false);
-  }, [currentDate]);
+  }, [currentDate,loading]);
 
   return loading ? (
     <Block block justifyContent="center" alignItems="center">

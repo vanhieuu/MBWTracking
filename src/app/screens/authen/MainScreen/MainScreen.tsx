@@ -8,7 +8,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import React, {useCallback, useRef} from 'react';
-import {Text, Block, FAB, SvgIcon} from '@components';
+import {Text, Block, FAB, SvgIcon, Modal, Icon} from '@components';
 import Mapbox from '@rnmapbox/maps';
 import {MAP_TITLE_URL} from '@config/app.const';
 import {AppTheme, useTheme} from '@theme';
@@ -81,7 +81,10 @@ const MainScreen = () => {
   /// Creating a polygon geofence
 
   //string errors
-  const [error, setError] = React.useState('');
+  const [error, setError] = React.useState(
+    'Không thể lấy được vị trí GPS. Bạn nên di chuyển đến vị trí không bị che khuất và thử lại.',
+  );
+  const [statusError, setStatusError] = React.useState(0);
   const [status, setStatus] = React.useState('active');
   const loginState = useSelector(
     state => state.login.loginResponse,
@@ -225,16 +228,24 @@ const MainScreen = () => {
           setError(
             'Không thể lấy được vị trí GPS. Bạn nên di chuyển đến vị trí không bị che khuất và thử lại.',
           );
+          setStatusError(0);
+          setModalShow(true);
           // setEnabled(true);
           break;
         case 1:
           setError('GPS đã bị tắt. Vui lòng bật lại.');
+          setStatusError(1);
+          setModalShow(true);
+
           // setEnabled(true);
           break;
         default:
           setError(
             'Không thể lấy được vị trí GPS. Bạn nên di chuyển đến vị trí không bị che khuất và thử lại.',
           );
+          setStatusError(errorCode);
+          setModalShow(true);
+
           // setEnabled(true);
           break;
       }
@@ -368,6 +379,16 @@ const MainScreen = () => {
     },
     [enabled],
   );
+
+  const onBackButton = useCallback(() => {
+    setModalShow(false);
+    // onClickGetCurrentPosition();
+  }, [statusError]);
+
+  const onGetCurrentPositionAgain = () =>{
+    setModalShow(false);
+    onClickGetCurrentPosition()
+  }
 
   React.useEffect(() => {
     BackgroundGeolocation.getCurrentPosition({
@@ -717,9 +738,54 @@ const MainScreen = () => {
           />
         </Block>
       </Animated.View>
-      {/* {status !== 'active' && (
-       
-      )} */}
+      <Modal
+        isVisible={modalShow}
+        backdropOpacity={0.5}
+        onBackButtonPress={onBackButton}
+        onBackdropPress={onBackButton}
+        animatedIn="slideInUp"
+        animatedOut="slideOutDown">
+        <Block
+          colorTheme="bg_default"
+          height={230}
+          marginLeft={16}
+          marginRight={16}
+          borderRadius={16}>
+          <Block justifyContent="center" alignItems="center" marginTop={8}>
+            <Icon icon="ErrorApiIcon" size={100} />
+          </Block>
+          <Block justifyContent="center" paddingVertical={8}>
+            <Text
+              textAlign="center"
+              fontSize={16}
+              fontWeight="500"
+              lineHeight={27}
+              colorTheme="text_primary">
+              {error}
+            </Text>
+          </Block>
+          <Block
+            paddingHorizontal={16}
+            justifyContent="center"
+            alignItems="center"
+            direction="row">
+            <TouchableOpacity
+              style={styles.buttonCancelModal}
+              onPress={onBackButton}>
+              <Text fontSize={16} colorTheme="primary" fontWeight="500">
+                Hủy
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.buttonModal}
+              onPress={onGetCurrentPositionAgain}>
+              <Text colorTheme="white" fontSize={16} fontWeight="500">
+                Thử lại
+              </Text>
+            </TouchableOpacity>
+          </Block>
+        </Block>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -790,5 +856,27 @@ const rootStyles = (theme: AppTheme) =>
       zIndex: 90000,
       marginLeft: 20,
       marginTop: 40,
+    } as ViewStyle,
+    buttonModal: {
+      flex: 1,
+      backgroundColor: theme.colors.primary,
+      height: 40,
+      borderRadius: 8,
+      marginRight: 8,
+      marginTop: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+    } as ViewStyle,
+    buttonCancelModal: {
+      flex: 1,
+      backgroundColor: theme.colors.bg_default,
+      height: 40,
+      borderRadius: 8,
+      marginRight: 8,
+      marginTop: 16,
+      justifyContent: 'center',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: theme.colors.action,
     } as ViewStyle,
   });
