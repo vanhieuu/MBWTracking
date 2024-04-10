@@ -21,6 +21,8 @@ const ModalPicker = (props: Props) => {
   const {showPicker, setShowPicker, onPressConfirm, setDate, date,onCancelPicker} = props;
   const [langCode] = useMMKVString(Language_Code ?? 'vi');
 
+  console.log(date,'date')
+
   return (
     <Modal
       isVisible={showPicker}
@@ -41,13 +43,15 @@ const ModalPicker = (props: Props) => {
           onPressConfirm={onPressConfirm}
           onCancel={onCancelPicker}
         />
-        <Block block>
+        <Block block   >
           <DatePicker
             date={date}
             onDateChange={setDate}
             mode="date"
+            modal={false}
+            theme='auto'
             locale={langCode}
-            style={{flex: 1, width, top: -150}}
+            style={{ width, top: -150}}
           />
         </Block>
       </Block>

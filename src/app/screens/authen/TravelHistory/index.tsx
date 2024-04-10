@@ -28,23 +28,26 @@ const TravelHistory = () => {
     shallowEqual,
   );
 
-  const startOfDay = useRef(new Date(currentDate.current)).current;
-
-  const startOfDayString = `${startOfDay.getFullYear()}-${String(
-    startOfDay.getMonth() + 1,
-  ).padStart(2, '0')}-${String(startOfDay.getDate()).padStart(
-    2,
-    '0',
-  )}T00:00:00`;
-
-  // Format the end of the day
-  const endOfDay = useRef(new Date(currentDate.current)).current;
-  endOfDay.setHours(23, 59, 59, 999);
-  const endOfDayString = `${endOfDay.getFullYear()}-${String(
-    endOfDay.getMonth() + 1,
-  ).padStart(2, '0')}-${String(endOfDay.getDate()).padStart(2, '0')}T23:59:59`;
-
   useDeepCompareEffect(() => {
+    const startOfDay = currentDate.current;
+
+    const startOfDayString = `${startOfDay.getFullYear()}-${String(
+      startOfDay.getMonth() + 1,
+    ).padStart(2, '0')}-${String(startOfDay.getDate()).padStart(
+      2,
+      '0',
+    )}T00:00:00`;
+
+    // Format the end of the day
+    const endOfDay = currentDate.current;
+    endOfDay.setHours(23, 59, 59, 999);
+    const endOfDayString = `${endOfDay.getFullYear()}-${String(
+      endOfDay.getMonth() + 1,
+    ).padStart(2, '0')}-${String(endOfDay.getDate()).padStart(
+      2,
+      '0',
+    )}T23:59:59`;
+
     setLoading(true);
     dispatch(
       appActions.getTravelHistoryAction(startOfDayString, endOfDayString),
@@ -55,14 +58,12 @@ const TravelHistory = () => {
     };
   }, [currentDate.current]);
   // console.log(langCode)
-  console.log(startOfDayString,'start day string')
-
 
   const onCancel = useCallback(() => {
     setDate(new Date());
     currentDate.current = new Date();
     setShowPicker(false);
-  }, [currentDate,loading]);
+  }, [currentDate, loading]);
 
   return loading ? (
     <Block block justifyContent="center" alignItems="center">
@@ -78,7 +79,7 @@ const TravelHistory = () => {
 
       <FlatList
         data={listTravelHistory.positions}
-        keyExtractor={(item, index) => item.uuid.toString()}
+        keyExtractor={(item, index) => index.toString()}
         showsVerticalScrollIndicator={false}
         decelerationRate={'fast'}
         renderItem={({item, index}) => {

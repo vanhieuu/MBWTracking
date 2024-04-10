@@ -15,12 +15,12 @@ const HeaderAvatar = ({userInfor}: Props) => {
   const theme = useTheme();
   const styles = headerStyle(theme);
   return (
-    <Block direction="row" alignItems="center" height={72}>
+    <Block direction="row" alignItems="center" height={72}     >
       {Object.keys(userInfor).length > 0 ? (
         <FastImage
           source={{uri: userInfor.image.replaceAll(' ', '%')}}
           style={styles.imageStyle}
-          resizeMode="contain"
+          resizeMode="cover"
         />
       ) : (
         <Block

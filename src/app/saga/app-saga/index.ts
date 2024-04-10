@@ -45,6 +45,9 @@ export function* getTravelHistory(action: PayloadAction) {
     }
   }
 }
+export function* getMoreTravelHistory(action:PayloadAction){
+  
+}
 
 export function* getUserInfor(action: PayloadAction) {
   if (appActions.getUserInfor.match(action)) {

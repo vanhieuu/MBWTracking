@@ -74,6 +74,7 @@ const AccountScreen = (props: Props) => {
   },[status,animatedValue]);
 
   const onSelectItem = (id: string, code: string) => {
+    hideAnimation()
     const newLangData = langData.map(item => {
       if (item.id === id) {
         return {...item, isSelected: true};

@@ -47,6 +47,7 @@ export const headerStyle = (theme: AppTheme) =>
       borderWidth: 1,
       borderColor: theme.colors.bg_neutral,
       marginHorizontal: 16,
+      
     } as FastImageStyle,
   });
 

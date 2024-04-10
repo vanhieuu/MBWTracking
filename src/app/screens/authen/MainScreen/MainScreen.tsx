@@ -3,6 +3,7 @@ import {
   AppState,
   AppStateStatus,
   Dimensions,
+  Platform,
   StyleSheet,
   TouchableOpacity,
   ViewStyle,
@@ -40,6 +41,7 @@ import MarkerItem from './components/MarkerItem';
 import ContentView from './components/ContentView';
 import {navigate} from '@navigation/navigation-service';
 import {APP_SCREENS} from '@navigation/screen-type';
+import {postLastLocation} from '@store/api';
 
 const UNDEFINED_LOCATION = {
   timestamp: '',
@@ -55,6 +57,7 @@ const MainScreen = () => {
 
   //Locations
   const locations = React.useRef<Location | any>();
+  const [list, setList] = React.useState<any[]>([]);
   const [enabled, setEnabled] = React.useState(false);
   const [isMoving, setIsMoving] = React.useState(false);
   const [modalShow, setModalShow] = React.useState(false);
@@ -107,7 +110,7 @@ const MainScreen = () => {
     new Animated.Value(Dimensions.get('window').height),
   ).current;
   const subscriptions = useRef<any[]>([]);
-
+  const listLocationMarkers = useRef<any[]>([]);
   React.useEffect(() => {
     if (locations !== null && locations?.current) {
       setOdometer(locations.current.odometer);
@@ -175,8 +178,8 @@ const MainScreen = () => {
         : 'https://api.ekgis.vn/v2/tracking/locationHistory/position/6556e471178a1db24ac1a711/655824e13a62d46bf149dced?api_key=LnJqtY8kpTY4ZxAtiT5frqPZUNxkDZBXPRSyCi7P',
 
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
-      distanceFilter: 5,
-      stopTimeout: 3,
+      distanceFilter: 15,
+      stopTimeout: 5,
       locationAuthorizationRequest: 'Always',
       backgroundPermissionRationale: {
         title:
@@ -220,6 +223,8 @@ const MainScreen = () => {
 
   useDeepCompareEffect(() => {}, [locations.current]);
 
+  // console.log(motionChangeEvent,'motionChangeEvent')
+
   const backgroundErrorListener = useCallback(
     (errorCode: number) => {
       // Handle background location errors
@@ -250,8 +255,20 @@ const MainScreen = () => {
           break;
       }
     },
-    [locations],
+    [locations.current, enabled],
   );
+
+  const onStartTracking = useCallback(async () => {
+    let location: Location = {...locations.current};
+    location.extras!.startTime = new Date().toISOString();
+    await postLastLocation(location);
+  }, [locations.current]);
+
+  const onStopTracking = useCallback(async () => {
+    let location: Location = {...locations.current};
+    location.extras!.endTime = new Date().toISOString();
+    await postLastLocation(location);
+  }, [locations.current]);
 
   const initBackgroundFetch = async () => {
     BackgroundFetch.configure(
@@ -282,6 +299,7 @@ const MainScreen = () => {
 
   const onMotionChange = async () => {
     let location = motionChangeEvent?.location;
+    // console.log(motionChangeEvent?.isMoving,'isMoving')
     if (motionChangeEvent?.isMoving) {
       // setUpdateLocations(location);
       if (lastMotionChangeEvent) {
@@ -298,6 +316,21 @@ const MainScreen = () => {
       }
       locations.current = motionChangeEvent.location;
 
+      listLocationMarkers.current = [
+        ...listLocationMarkers.current,
+        [
+          motionChangeEvent.location.coords.longitude,
+          motionChangeEvent.location.coords.latitude,
+        ],
+      ];
+      setList([
+        ...list,
+        [
+          motionChangeEvent.location.coords.longitude,
+          motionChangeEvent.location.coords.latitude,
+        ],
+      ]);
+      // console.log(location,'location')
       setOdometer(motionChangeEvent.location.odometer);
       setStationaryLocation(UNDEFINED_LOCATION);
     } else {
@@ -320,7 +353,7 @@ const MainScreen = () => {
   React.useEffect(() => {
     if (!motionChangeEvent) return;
     onMotionChange();
-  }, [motionChangeEvent, odometer]);
+  }, [motionChangeEvent, odometer, isMoving]);
   // console.log(locations.current,'motionChangeEvent');
 
   React.useEffect(() => {
@@ -385,12 +418,12 @@ const MainScreen = () => {
     // onClickGetCurrentPosition();
   }, [statusError]);
 
-  const onGetCurrentPositionAgain = () =>{
+  const onGetCurrentPositionAgain = () => {
     setModalShow(false);
-    onClickGetCurrentPosition()
-  }
+    onClickGetCurrentPosition();
+  };
 
-  React.useEffect(() => {
+  useDeepCompareEffect(() => {
     BackgroundGeolocation.getCurrentPosition({
       persist: true,
       samples: 2,
@@ -412,7 +445,7 @@ const MainScreen = () => {
         backgroundErrorListener(error);
         console.warn('[getCurrentPosition] error: ', error);
       });
-  }, [isMoving]);
+  }, [isMoving, enabled]);
 
   // console.log(sortedData(dataCustomer),'sorted Data')
   // console.log(coordinates,'coordinates')
@@ -502,6 +535,7 @@ const MainScreen = () => {
       }),
     };
   };
+  // console.log(listLocationMarkers.current,';listLocation')
 
   const onGeofencesChange = () => {
     let on: any = geofencesChangeEvent?.on;
@@ -538,7 +572,10 @@ const MainScreen = () => {
 
   const startAnimation = useCallback(() => {
     Animated.timing(animatedValue, {
-      toValue: Dimensions.get('window').height - 300,
+      toValue:
+        Platform.OS === 'ios'
+          ? Dimensions.get('window').height - 300
+          : Dimensions.get('window').height - 250,
       duration: 500,
       useNativeDriver: true,
     }).start();
@@ -552,11 +589,13 @@ const MainScreen = () => {
   }, [status]);
 
   const onPressStart = () => {
+    console.log(listLocationMarkers.current);
     if (status === 'active') {
       setStatus('inActive');
       startAnimation();
       toggleTimer();
       // BackgroundGeolocation.start();
+      onStartTracking();
       setIsMoving(true);
       BackgroundGeolocation.changePace(!isMoving);
       onClickEnable(true);
@@ -565,9 +604,11 @@ const MainScreen = () => {
       sortedData(dataCustomer);
       hideAnimated();
       toggleTimer();
+      onStopTracking();
       onClickEnable(false);
       BackgroundGeolocation.changePace(!isMoving);
       setIsMoving(false);
+      listLocationMarkers.current = [];
       // BackgroundGeolocation.stop();
 
       // startAnimation();
@@ -585,6 +626,10 @@ const MainScreen = () => {
     setGeofenceHitEvents([]);
     setGeofenceEvent(null);
   };
+
+  // useLayoutEffect(() =>{
+
+  // },[listLocationMarkers.current])
 
   // console.log(updateLocations,'update Locations')
   // console.log(motionChangeEvent,'motion change')
@@ -605,6 +650,7 @@ const MainScreen = () => {
       </TouchableOpacity>
       <Block style={styles.mapView}>
         <Mapbox.MapView
+          key={listLocationMarkers.current.length}
           pitchEnabled={false}
           attributionEnabled={false}
           scaleBarEnabled={false}
@@ -632,7 +678,32 @@ const MainScreen = () => {
             animationDuration={500}
             zoomLevel={15}
           />
+          <Mapbox.UserLocation
+            visible={true}
+            animated
+            androidRenderMode="gps"
+            minDisplacement={5}
+            showsUserHeadingIndicator={true}
+          />
           {/* <Poly */}
+
+          {listLocationMarkers.current &&
+            listLocationMarkers.current.length > 0 &&
+            listLocationMarkers.current.map((item, index) => {
+              return (
+                <Mapbox.MarkerView key={index} coordinate={item}>
+                  <Block
+                    key={index}
+                    width={5}
+                    height={5}
+                    colorTheme="action"
+                    color={theme.colors.action}
+                    borderRadius={10}
+                  />
+                </Mapbox.MarkerView>
+              );
+            })}
+
           <Mapbox.RasterSource
             id="adminmap"
             tileUrlTemplates={[MAP_TITLE_URL.adminMap]}>
@@ -658,13 +729,6 @@ const MainScreen = () => {
               })
             : null}
           {/* <Block zIndex={99999} position='absolute'> */}
-          <Mapbox.UserLocation
-            visible={true}
-            animated
-            androidRenderMode="gps"
-            minDisplacement={5}
-            showsUserHeadingIndicator={true}
-          />
         </Mapbox.MapView>
 
         <FAB
@@ -694,6 +758,15 @@ const MainScreen = () => {
       </TouchableOpacity>
       <Animated.View
         style={[styles.bottomView, {transform: [{translateY: animatedValue}]}]}>
+        {/* <Block>
+          {listLocationMarkers.current.map((item,index)=>{
+            return(
+              <Block key={index}>
+                <Text colorTheme='text_primary'>{item[index]}</Text>
+              </Block>
+            )
+          })}
+         </Block> */}
         <Block
           direction="row"
           alignItems="center"

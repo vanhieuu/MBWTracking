@@ -29,7 +29,7 @@ const TravelItem = (props: Props) => {
   }, [props.item]);
 
   return (
-    <TouchableOpacity style={styles.rootButtonStyle}>
+    <TouchableOpacity style={styles.rootButtonStyle} key={props.index}>
       <Block
         direction="row"
         justifyContent="space-between"
@@ -60,7 +60,7 @@ const TravelItem = (props: Props) => {
           colorTheme="bg_neutral"
           padding={8}
           borderRadius={8}>
-          <Text>
+          <Text  colorTheme='text_primary' >
             {' '}
             <SvgIcon source="TinyMapPin" size={14} colorTheme="white" />{' '}
             {props.item.odometer > 0 ? props.item.odometer/1000 : props.item.odometer} km
@@ -82,12 +82,12 @@ const TravelItem = (props: Props) => {
         </Block>
         <Block alignItems="flex-start" justifyContent="space-between">
           <Block marginLeft={8}>
-            <Text>{address}</Text>
+            <Text colorTheme='text_primary'>{address}</Text>
           </Block>
           <Block />
 
           <Block marginLeft={8}>
-            <Text numberOfLines={1}>{address}</Text>
+            <Text numberOfLines={1} colorTheme='text_primary'>{address}</Text>
           </Block>
         </Block>
       </Block>

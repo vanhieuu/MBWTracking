@@ -1,6 +1,7 @@
 import {StyleSheet} from 'react-native';
 
 import {BG_SUCCESS} from './constants';
+import { ColorDefault } from '@theme/color';
 
 export const styles = StyleSheet.create({
   container: {
@@ -32,5 +33,6 @@ export const styles = StyleSheet.create({
   },
   text: {
     flex: 1,
+    color:ColorDefault.text_primary
   },
 });
