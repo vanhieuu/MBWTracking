@@ -16,8 +16,10 @@ import IconMapPin from './source/iconMapPin.svg';
 import IconArrowDown from './source/carret-down.svg';
 import LineMap from './source/lineMap.svg';
 import IconLocation from './source/iconLocation.svg';
-import TinyMapPin from './source/tinyMapPin.svg'
+import TinyMapPin from './source/tinyMapPin.svg';
+import FlagStart from './source/flag-start.svg'
 export const SvgComponent = {
+  FlagStart,
   LineMap,
   TinyMapPin,
   IconLocation,

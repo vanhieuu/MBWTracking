@@ -166,9 +166,19 @@ const MainScreen = () => {
   );
 
   useDeepCompareEffect(() => {
-    subscribe(BackgroundGeolocation.onMotionChange(setMotionChangeEvent));
-    subscribe(BackgroundGeolocation.onGeofence(setGeofenceEvent));
-    subscribe(BackgroundGeolocation.onGeofencesChange(setGeofencesChangeEvent));
+    subscribe(
+      BackgroundGeolocation.onMotionChange(motion =>
+        setMotionChangeEvent(motion),
+      ),
+    );
+    subscribe(
+      BackgroundGeolocation.onGeofence(geofence => setGeofenceEvent(geofence)),
+    );
+    subscribe(
+      BackgroundGeolocation.onGeofencesChange(geofence =>
+        setGeofencesChangeEvent(geofence),
+      ),
+    );
     subscribe(BackgroundGeolocation.onEnabledChange(setEnabled));
 
     // Auto-toggle [ play ] / [ pause ] button in bottom toolbar on motionchange events.
@@ -215,13 +225,14 @@ const MainScreen = () => {
     return () => {
       // When view is destroyed (or refreshed with dev live-reload),
       // Remove BackgroundGeolocation event-listeners.
+
       unsubscribe();
       clearMarkers();
       // locationSubscriber.remove();
     };
   }, [locations.current]);
 
-  useDeepCompareEffect(() => {}, [locations.current]);
+  // useDeepCompareEffect(() => {}, [locations.current]);
 
   // console.log(motionChangeEvent,'motionChangeEvent')
 
@@ -303,6 +314,7 @@ const MainScreen = () => {
     if (motionChangeEvent?.isMoving) {
       // setUpdateLocations(location);
       if (lastMotionChangeEvent) {
+        console.log(lastMotionChangeEvent, 'lastMotionChange');
         setStopZones(previous => [
           ...previous,
           {
@@ -323,8 +335,8 @@ const MainScreen = () => {
           motionChangeEvent.location.coords.latitude,
         ],
       ];
-      setList([
-        ...list,
+      setList(prev => [
+        ...prev,
         [
           motionChangeEvent.location.coords.longitude,
           motionChangeEvent.location.coords.latitude,
@@ -403,10 +415,12 @@ const MainScreen = () => {
   const _handleAppStateChange = useCallback(
     async (nextAppState: AppStateStatus) => {
       appState.current = nextAppState;
-      console.log('[_handleAppStateChange]', nextAppState);
+
       if (nextAppState === 'background') {
         // App entered background.
+        console.log('1');
       } else {
+        console.log('2');
         // onClickEnable(true);
       }
     },
@@ -588,13 +602,16 @@ const MainScreen = () => {
     }).start();
   }, [status]);
 
-  const onPressStart = () => {
-    console.log(listLocationMarkers.current);
+  const onPressStart = useCallback(() => {
     if (status === 'active') {
       setStatus('inActive');
       startAnimation();
       toggleTimer();
-      // BackgroundGeolocation.start();
+      // setList([
+      //   Number(locations.current?.coords.longitude),
+      //   Number(locations.current?.coords.latitude),
+      // ]);
+      BackgroundGeolocation.start();
       onStartTracking();
       setIsMoving(true);
       BackgroundGeolocation.changePace(!isMoving);
@@ -602,18 +619,19 @@ const MainScreen = () => {
     } else {
       setStatus('active');
       sortedData(dataCustomer);
+      setList([]);
       hideAnimated();
       toggleTimer();
       onStopTracking();
       onClickEnable(false);
       BackgroundGeolocation.changePace(!isMoving);
       setIsMoving(false);
-      listLocationMarkers.current = [];
-      // BackgroundGeolocation.stop();
+      // listLocationMarkers.current = [];
+      BackgroundGeolocation.stop();
 
       // startAnimation();
     }
-  };
+  }, [status]);
 
   // console.log(elapsedTime,'elap')
   // console.log(sortedData(dataCustomer), 'bbb');
@@ -631,6 +649,7 @@ const MainScreen = () => {
 
   // },[listLocationMarkers.current])
 
+  // console.log(list,'list')
   // console.log(updateLocations,'update Locations')
   // console.log(motionChangeEvent,'motion change')
   return (
@@ -687,19 +706,23 @@ const MainScreen = () => {
           />
           {/* <Poly */}
 
-          {listLocationMarkers.current &&
-            listLocationMarkers.current.length > 0 &&
-            listLocationMarkers.current.map((item, index) => {
+          {list &&
+            list.length > 0 &&
+            list.map((item, index) => {
               return (
                 <Mapbox.MarkerView key={index} coordinate={item}>
-                  <Block
-                    key={index}
-                    width={5}
-                    height={5}
-                    colorTheme="action"
-                    color={theme.colors.action}
-                    borderRadius={10}
-                  />
+                  {index === 0 ? (
+                    <SvgIcon source="FlagStart" size={24}  />
+                  ) : (
+                    <Block
+                      key={item[index]}
+                      width={5}
+                      height={5}
+                      colorTheme="action"
+                      color={theme.colors.action}
+                      borderRadius={10}
+                    />
+                  )}
                 </Mapbox.MarkerView>
               );
             })}
@@ -758,15 +781,6 @@ const MainScreen = () => {
       </TouchableOpacity>
       <Animated.View
         style={[styles.bottomView, {transform: [{translateY: animatedValue}]}]}>
-        {/* <Block>
-          {listLocationMarkers.current.map((item,index)=>{
-            return(
-              <Block key={index}>
-                <Text colorTheme='text_primary'>{item[index]}</Text>
-              </Block>
-            )
-          })}
-         </Block> */}
         <Block
           direction="row"
           alignItems="center"
@@ -805,7 +819,7 @@ const MainScreen = () => {
               locations?.current?.battery.level
                 ? locations?.current?.battery.level < 0
                   ? -locations?.current.battery.level * 100
-                  : locations?.current.battery.level * 100
+                  : Math.round(locations?.current.battery.level) * 100
                 : 0
             }
           />

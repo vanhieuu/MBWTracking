@@ -8,7 +8,9 @@
     "lint": "eslint .",
     "start": "react-native start",
     "test": "jest",
-    "pod": "cd ios && pod install && cd .."
+    "pod": "cd ios && pod install && cd ..",
+    "clean:android":"cd android && ./gradlew clean && cd..",
+    "build:android":"cd android && ./gradlew assembleRelease"
   },
   "dependencies": {
     "@react-native-community/netinfo": "^11.3.1",
