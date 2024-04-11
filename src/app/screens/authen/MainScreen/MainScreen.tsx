@@ -1,4 +1,5 @@
 import {
+  Alert,
   Animated,
   AppState,
   AppStateStatus,
@@ -8,7 +9,7 @@ import {
   TouchableOpacity,
   ViewStyle,
 } from 'react-native';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useLayoutEffect, useRef} from 'react';
 import {Text, Block, FAB, SvgIcon, Modal, Icon} from '@components';
 import Mapbox from '@rnmapbox/maps';
 import {MAP_TITLE_URL} from '@config/app.const';
@@ -24,6 +25,7 @@ import BackgroundGeolocation, {
 } from 'react-native-background-geolocation';
 import {API_EK_KEY, BASE_URL_MAP} from '@config/createApi';
 import {
+  AppModule,
   ListCustomerRouter,
   calculateDistance,
   computeOffsetCoordinate,
@@ -43,6 +45,7 @@ import ContentView from './components/ContentView';
 import {navigate} from '@navigation/navigation-service';
 import {APP_SCREENS} from '@navigation/screen-type';
 import {postLastLocation} from '@store/api';
+import {useMMKV} from 'react-native-mmkv';
 
 const UNDEFINED_LOCATION = {
   timestamp: '',
@@ -111,7 +114,9 @@ const MainScreen = () => {
     new Animated.Value(Dimensions.get('window').height),
   ).current;
   const subscriptions = useRef<any[]>([]);
-  const listLocationMarkers = useRef<any[]>([]);
+  const hasDisclosedBackgroundPermission = AppModule.storage.getString(
+    '@transistorsoft:hasDisclosedBackgroundPermission',
+  );
 
   React.useEffect(() => {
     if (location) {
@@ -131,6 +136,36 @@ const MainScreen = () => {
     subscriptions.current.forEach((subscription: any) => subscription.remove());
     subscriptions.current.splice(0, subscriptions.current.length);
   };
+
+  const onDiscloseBackgroundPermission = () => {
+    AppModule.storage.set(
+      '@transistorsoft:hasDisclosedBackgroundPermission',
+      'true',
+    );
+  };
+
+  useLayoutEffect(() => {
+    if (Platform.OS === 'android' && !hasDisclosedBackgroundPermission) {
+      // For Google Play Console Submission:  "disclosure for background permission".
+      // This is just a simple one-time Alert.  This is your own responsibility to do this.
+      Alert.alert(
+        'Quyền truy cập vị trí',
+        [
+          ' MBW Tracking thu thập dữ liệu vị trí để cho phép theo dõi chuyến đi đi làm của bạn và tính toán quãng đường đã di chuyển ngay cả khi đóng hoặc không sử dụng ứng dụng',
+          'Dữ liệu này sẽ được tải lên CSDL công ty bạn, nơi bạn có thể xem lịch sử vị trí của mình.',
+        ].join('\n\n'),
+        [
+          {
+            text: 'Close',
+            onPress: () => {
+              onDiscloseBackgroundPermission();
+            },
+          },
+        ],
+      );
+      return;
+    }
+  }, []);
 
   const sortedData = useCallback(
     (filteredData: ListCustomerRouter[]) => {
@@ -230,9 +265,11 @@ const MainScreen = () => {
     BackgroundGeolocation.getState().then((state: State) => {
       setEnabled(state.enabled);
     });
-    subscribe(BackgroundGeolocation.onLocation(setLocation, (error) => {
-      console.warn('[onLocation] ERROR: ', error);
-    }));
+    subscribe(
+      BackgroundGeolocation.onLocation(setLocation, error => {
+        console.warn('[onLocation] ERROR: ', error);
+      }),
+    );
 
     // For printing odometer in bottom toolbar.
     const locationSubscriber: any = BackgroundGeolocation.onLocation(
@@ -747,7 +784,11 @@ const MainScreen = () => {
               return (
                 <Mapbox.MarkerView key={index.toString()} coordinate={marker}>
                   {index === 0 ? (
-                    <SvgIcon source="FlagStart" size={24} key={index.toString()}/>
+                    <SvgIcon
+                      source="FlagStart"
+                      size={24}
+                      key={index.toString()}
+                    />
                   ) : (
                     <Block
                       key={index.toString()}
