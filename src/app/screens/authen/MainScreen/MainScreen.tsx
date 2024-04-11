@@ -20,6 +20,7 @@ import BackgroundGeolocation, {
   Location,
   LocationError,
   MotionChangeEvent,
+  State,
 } from 'react-native-background-geolocation';
 import {API_EK_KEY, BASE_URL_MAP} from '@config/createApi';
 import {
@@ -56,7 +57,7 @@ const MainScreen = () => {
   const appTheme = useSelector(state => state.app.theme, shallowEqual);
 
   //Locations
-  const locations = React.useRef<Location | any>();
+  const [location, setLocation] = React.useState<Location | any>(null);
   const [list, setList] = React.useState<any[]>([]);
   const [enabled, setEnabled] = React.useState(false);
   const [isMoving, setIsMoving] = React.useState(false);
@@ -111,14 +112,17 @@ const MainScreen = () => {
   ).current;
   const subscriptions = useRef<any[]>([]);
   const listLocationMarkers = useRef<any[]>([]);
+
   React.useEffect(() => {
-    if (locations !== null && locations?.current) {
-      setOdometer(locations.current.odometer);
+    if (location) {
+      setOdometer(location.odometer);
     } else {
       return;
     }
-  }, [locations]);
-
+  }, [location]);
+  // React.useEffect(() => {
+  //   onEnabledChange();
+  // }, [enabled]);
   const subscribe = useCallback((subscription: any) => {
     subscriptions.current.push(subscription);
   }, []);
@@ -136,14 +140,14 @@ const MainScreen = () => {
           const locationA = JSON.parse(a.customer_location_primary);
           const locationB = JSON.parse(b.customer_location_primary);
           const distance1 = calculateDistance(
-            locations.current?.coords.latitude ?? 0,
-            locations.current?.coords.longitude ?? 0,
+            location.coords.latitude ?? 0,
+            location.coords.longitude ?? 0,
             locationA?.lat,
             locationA?.long,
           );
           const distance2 = calculateDistance(
-            locations.current?.coords.latitude ?? 0,
-            locations.current?.coords.longitude ?? 0,
+            location.coords.latitude ?? 0,
+            location.coords.longitude ?? 0,
             locationB.lat,
             locationB.long,
           );
@@ -154,83 +158,126 @@ const MainScreen = () => {
           let coords = JSON.parse(item.customer_location_primary);
           // console.log(coords,'coords')
           const distance = calculateDistance(
-            locations.current?.coords.latitude,
-            locations.current?.coords.longitude,
+            location.coords.latitude,
+            location.coords.longitude,
             coords.lat,
             coords.long,
           );
           return Math.round(distance * 100) / 100;
         });
     },
-    [locations.current, motionChangeEvent],
+    [location, motionChangeEvent],
   );
 
-  useDeepCompareEffect(() => {
-    subscribe(
-      BackgroundGeolocation.onMotionChange(motion =>
-        setMotionChangeEvent(motion),
-      ),
-    );
-    subscribe(
-      BackgroundGeolocation.onGeofence(geofence => setGeofenceEvent(geofence)),
-    );
-    subscribe(
-      BackgroundGeolocation.onGeofencesChange(geofence =>
-        setGeofencesChangeEvent(geofence),
-      ),
-    );
-    subscribe(BackgroundGeolocation.onEnabledChange(setEnabled));
-
-    // Auto-toggle [ play ] / [ pause ] button in bottom toolbar on motionchange events.
-    BackgroundGeolocation.ready({
+  const initBackgroundGeoLocation = async () => {
+    const state: State = await BackgroundGeolocation.ready({
       url: URL.current
         ? URL.current
         : 'https://api.ekgis.vn/v2/tracking/locationHistory/position/6556e471178a1db24ac1a711/655824e13a62d46bf149dced?api_key=LnJqtY8kpTY4ZxAtiT5frqPZUNxkDZBXPRSyCi7P',
 
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
-      distanceFilter: 15,
+      distanceFilter: 10,
       stopTimeout: 5,
       locationAuthorizationRequest: 'Always',
       backgroundPermissionRationale: {
         title:
-          'Cho phép {applicationName} truy cập vào vị trí kể cả khi không sử dụng',
+          'Cho phép MBWTracking truy cập vào vị trí kể cả khi không sử dụng',
         message:
-          'This app collects location data to enable recording your trips to work and calculate distance-travelled.',
-        positiveAction: 'Change to "{backgroundPermissionOptionLabel}"',
-        negativeAction: 'Cancel',
+          'Ứng dụng này thu thập dữ liệu vị trí để cho phép ghi lại chuyến đi làm của bạn và tính toán khoảng cách di chuyển',
+        positiveAction: 'Cho phép cấp quyền',
+        negativeAction: 'Hủy bỏ',
       },
       // HTTP & Persistence
       autoSync: true,
-      autoSyncThreshold: 5,
+      // autoSyncThreshold: 5,
       maxBatchSize: 50,
       batchSync: false,
       maxDaysToPersist: 14,
       // Application
       stopOnTerminate: false,
       params: {
-        location: locations.current,
+        location: location,
       },
 
       enableHeadless: true,
-    }).then(state => {
-      setOdometer(state.odometer);
-      setEnabled(state.enabled);
-      setIsMoving(state.isMoving || false);
     });
+    setOdometer(state.odometer);
+    setEnabled(state.enabled);
+    setIsMoving(state.isMoving || false);
+  };
 
+  const onLocation = () => {
+    if (!location.sample) {
+      addMarker(location);
+      // setList(prev => [...prev, location]);
+    }
+  };
+
+  const addMarker = (location: Location) => {
+    // listLocationMarkers.current = [
+    //   ...listLocationMarkers.current,
+    //   [location.coords.longitude, location.coords.latitude],
+    // ];
+    setList(previous => [
+      ...previous,
+      [location.coords.longitude, location.coords.latitude],
+    ]);
+  };
+
+  // console.log(list,'listMarker')
+  React.useEffect(() => {
+    // Register BackgroundGeolocation event-listeners.
+    BackgroundGeolocation.getState().then((state: State) => {
+      setEnabled(state.enabled);
+    });
+    subscribe(BackgroundGeolocation.onLocation(setLocation, (error) => {
+      console.warn('[onLocation] ERROR: ', error);
+    }));
+
+    // For printing odometer in bottom toolbar.
+    const locationSubscriber: any = BackgroundGeolocation.onLocation(
+      setLocation,
+      error => {
+        console.warn('[onLocation] ERROR: ', error);
+      },
+    );
+    // Auto-toggle [ play ] / [ pause ] button in bottom toolbar on motionchange events.
+    const motionChangeSubscriber: any = BackgroundGeolocation.onMotionChange(
+      location => {
+        setIsMoving(location.isMoving);
+        setMotionChangeEvent(location);
+      },
+    );
+    // For printing the motion-activity in bottom toolbar.
+
+    const notificationActionSubscriber: any =
+      BackgroundGeolocation.onNotificationAction(button => {
+        console.log('[onNotificationAction]', button);
+      });
+
+    // Configure BackgroundFetch (optional)
     initBackgroundFetch();
+
+    // Configure BackgroundGeolocation.ready().
+    initBackgroundGeoLocation();
+
+    // Boilerplate authorization-listener for tracker.transistorsoft.com (nothing interesting)
+    // registerTransistorAuthorizationListener(navigation);
 
     AppState.addEventListener('change', _handleAppStateChange);
 
     return () => {
       // When view is destroyed (or refreshed with dev live-reload),
       // Remove BackgroundGeolocation event-listeners.
-
-      unsubscribe();
+      locationSubscriber.remove();
+      motionChangeSubscriber.remove();
       clearMarkers();
-      // locationSubscriber.remove();
+      notificationActionSubscriber.remove();
+      unsubscribe();
     };
-  }, [locations.current]);
+  }, []);
+
+  initBackgroundGeoLocation();
 
   // useDeepCompareEffect(() => {}, [locations.current]);
 
@@ -238,7 +285,7 @@ const MainScreen = () => {
 
   const backgroundErrorListener = useCallback(
     (errorCode: number) => {
-      // Handle background location errors
+      // Handle background location errorsc
       switch (errorCode) {
         case 0:
           setError(
@@ -266,20 +313,18 @@ const MainScreen = () => {
           break;
       }
     },
-    [locations.current, enabled],
+    [location, enabled],
   );
 
   const onStartTracking = useCallback(async () => {
-    let location: Location = {...locations.current};
     location.extras!.startTime = new Date().toISOString();
     await postLastLocation(location);
-  }, [locations.current]);
+  }, [location]);
 
   const onStopTracking = useCallback(async () => {
-    let location: Location = {...locations.current};
     location.extras!.endTime = new Date().toISOString();
     await postLastLocation(location);
-  }, [locations.current]);
+  }, [location]);
 
   const initBackgroundFetch = async () => {
     BackgroundFetch.configure(
@@ -296,9 +341,9 @@ const MainScreen = () => {
           maximumAge: 10000,
           persist: true,
           timeout: 30,
-          samples: 2,
+          samples: 3,
         });
-        locations.current = location;
+        setLocation(location);
         BackgroundFetch.finish(taskId);
       },
       async taskId => {
@@ -308,13 +353,12 @@ const MainScreen = () => {
     );
   };
 
-  const onMotionChange = async () => {
+  const onMotionChange = useCallback(async () => {
     let location = motionChangeEvent?.location;
+
     // console.log(motionChangeEvent?.isMoving,'isMoving')
     if (motionChangeEvent?.isMoving) {
-      // setUpdateLocations(location);
       if (lastMotionChangeEvent) {
-        
         setStopZones(previous => [
           ...previous,
           {
@@ -326,15 +370,8 @@ const MainScreen = () => {
           },
         ]);
       }
-      locations.current = motionChangeEvent.location;
+      setLocation(motionChangeEvent.location);
 
-      listLocationMarkers.current = [
-        ...listLocationMarkers.current,
-        [
-          motionChangeEvent.location.coords.longitude,
-          motionChangeEvent.location.coords.latitude,
-        ],
-      ];
       setList(prev => [
         ...prev,
         [
@@ -347,7 +384,6 @@ const MainScreen = () => {
       setStationaryLocation(UNDEFINED_LOCATION);
     } else {
       let state = await BackgroundGeolocation.getState();
-      console.log(state.isMoving, 'isMoving');
       setStationaryLocation({
         timestamp: location?.timestamp!,
         latitude: location?.coords.latitude!,
@@ -355,18 +391,22 @@ const MainScreen = () => {
       });
     }
     setLastMotionChangeEvent(motionChangeEvent);
-  };
+  }, [location]);
 
   React.useEffect(() => {
     if (!geofenceEvent) return;
     onGeofence();
   }, [geofenceEvent]);
+  React.useEffect(() => {
+    if (!location) return;
+    onLocation();
+  }, [location]);
 
   React.useEffect(() => {
     if (!motionChangeEvent) return;
     onMotionChange();
-  }, [motionChangeEvent, odometer, isMoving]);
-  // console.log(locations.current,'motionChangeEvent');
+  }, [motionChangeEvent, location]);
+  // console.log(location,'motionChangeEvent');
 
   React.useEffect(() => {
     if (!geofencesChangeEvent) return;
@@ -375,10 +415,12 @@ const MainScreen = () => {
 
   const onClickEnable = async (value: boolean) => {
     let state = await BackgroundGeolocation.getState();
+    console.log(state.trackingMode, 'trackingMode');
     setEnabled(value);
     if (value) {
       if (state.trackingMode == 1) {
         BackgroundGeolocation.start();
+        setIsMoving(true);
         dispatch(appActions.getCustomerRouteAction());
       } else {
         BackgroundGeolocation.startGeofences();
@@ -401,7 +443,11 @@ const MainScreen = () => {
       },
     })
       .then((location: Location) => {
-        locations.current = location;
+        setLocation(location);
+        if (location && location.coords.speed! > 0) {
+          setIsMoving(true);
+        }
+
         mapboxCameraRef.current?.flyTo(
           [location.coords.longitude, location.coords.latitude],
           500,
@@ -412,20 +458,12 @@ const MainScreen = () => {
       });
   };
 
-  const _handleAppStateChange = useCallback(
-    async (nextAppState: AppStateStatus) => {
-      appState.current = nextAppState;
-
-      if (nextAppState === 'background') {
-        // App entered background.
-        console.log('1');
-      } else {
-        console.log('2');
-        // onClickEnable(true);
-      }
-    },
-    [enabled],
-  );
+  const _handleAppStateChange = async (nextAppState: AppStateStatus) => {
+    appState.current = nextAppState;
+    if (nextAppState === 'background') {
+    } else {
+    }
+  };
 
   const onBackButton = useCallback(() => {
     setModalShow(false);
@@ -448,7 +486,7 @@ const MainScreen = () => {
       },
     })
       .then((location: Location) => {
-        locations.current = location;
+        setLocation(location);
         mapboxCameraRef.current?.flyTo(
           [location.coords.longitude, location.coords.latitude],
           1000,
@@ -594,6 +632,7 @@ const MainScreen = () => {
       useNativeDriver: true,
     }).start();
   }, [status]);
+
   const hideAnimated = useCallback(() => {
     Animated.timing(animatedValue, {
       toValue: Dimensions.get('window').height,
@@ -608,7 +647,7 @@ const MainScreen = () => {
       startAnimation();
       toggleTimer();
       // setList([
-      //   Number(locations.current?.coords.longitude),
+      //   Number(location.coords.longitude),
       //   Number(locations.current?.coords.latitude),
       // ]);
       BackgroundGeolocation.start();
@@ -669,7 +708,6 @@ const MainScreen = () => {
       </TouchableOpacity>
       <Block style={styles.mapView}>
         <Mapbox.MapView
-          key={listLocationMarkers.current.length}
           pitchEnabled={false}
           attributionEnabled={false}
           scaleBarEnabled={false}
@@ -685,17 +723,14 @@ const MainScreen = () => {
           <Mapbox.Camera
             ref={mapboxCameraRef}
             // followUserLocation
+
             centerCoordinate={[
-              locations?.current && locations?.current !== null
-                ? locations?.current.coords.longitude
-                : 0,
-              locations.current && locations?.current !== null
-                ? locations?.current.coords.latitude
-                : 0,
+              location ? location.coords.longitude : 0,
+              location ? location.coords.latitude : 0,
             ]}
             animationMode={'flyTo'}
             animationDuration={500}
-            zoomLevel={15}
+            // zoomLevel={20}
           />
           <Mapbox.UserLocation
             visible={true}
@@ -708,16 +743,16 @@ const MainScreen = () => {
 
           {list &&
             list.length > 0 &&
-            list.map((item, index) => {
+            list.map((marker, index) => {
               return (
-                <Mapbox.MarkerView key={index} coordinate={item}>
+                <Mapbox.MarkerView key={index.toString()} coordinate={marker}>
                   {index === 0 ? (
-                    <SvgIcon source="FlagStart" size={24}  />
+                    <SvgIcon source="FlagStart" size={24} key={index.toString()}/>
                   ) : (
                     <Block
-                      key={item[index]}
-                      width={5}
-                      height={5}
+                      key={index.toString()}
+                      width={10}
+                      height={10}
                       colorTheme="action"
                       color={theme.colors.action}
                       borderRadius={10}
@@ -807,7 +842,7 @@ const MainScreen = () => {
             title="Vận tốc (km/h)"
             icon="IconOdometer"
             value={
-              isMoving && locations?.current?.coords.speed > 0
+              isMoving && location?.coords.speed > 0
                 ? Math.round(motionChangeEvent?.location.coords.speed! * 3.6)
                 : 0
             }
@@ -816,10 +851,10 @@ const MainScreen = () => {
             title="Phần trăm pin (%)"
             icon="IconBattery"
             value={
-              locations?.current?.battery.level
-                ? locations?.current?.battery.level < 0
-                  ? -locations?.current.battery.level * 100
-                  : Math.round(locations?.current.battery.level) * 100
+              location?.battery.level
+                ? location?.battery.level < 0
+                  ? -location?.battery.level * 100
+                  : Math.round(location?.battery.level * 100)
                 : 0
             }
           />
