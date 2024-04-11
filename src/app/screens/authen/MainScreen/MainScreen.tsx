@@ -314,7 +314,7 @@ const MainScreen = () => {
     if (motionChangeEvent?.isMoving) {
       // setUpdateLocations(location);
       if (lastMotionChangeEvent) {
-        console.log(lastMotionChangeEvent, 'lastMotionChange');
+        
         setStopZones(previous => [
           ...previous,
           {
