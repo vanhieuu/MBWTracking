@@ -9,8 +9,9 @@
     "start": "react-native start",
     "test": "jest",
     "pod": "cd ios && pod install && cd ..",
-    "clean:android":"cd android && ./gradlew clean && cd..",
-    "build:android":"cd android && ./gradlew assembleRelease"
+    "clean:android":"cd android && ./gradlew clean && cd ..",
+    "build:apk":"cd android && ./gradlew assembleRelease",
+    "build:aab":"npx react-native build-android --mode=release"
   },
   "dependencies": {
     "@react-native-community/netinfo": "^11.3.1",

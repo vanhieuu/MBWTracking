@@ -97,10 +97,7 @@ const MainScreen = () => {
     state => state.login.loginResponse,
     shallowEqual,
   );
-  const dataCustomer: ListCustomerRouter[] = useSelector(
-    state => state.app.data?.dataCustomer,
-    shallowEqual,
-  );
+
   const {elapsedTime, isRunning, toggleTimer} = useTimer();
   const appState = useRef<AppStateStatus>('unknown');
   const URL = useRef<string>(
@@ -156,7 +153,7 @@ const MainScreen = () => {
         ].join('\n\n'),
         [
           {
-            text: 'Close',
+            text: 'Đóng',
             onPress: () => {
               onDiscloseBackgroundPermission();
             },
@@ -166,43 +163,6 @@ const MainScreen = () => {
       return;
     }
   }, []);
-
-  const sortedData = useCallback(
-    (filteredData: ListCustomerRouter[]) => {
-      return filteredData
-        .slice()
-        .sort((a, b) => {
-          const locationA = JSON.parse(a.customer_location_primary);
-          const locationB = JSON.parse(b.customer_location_primary);
-          const distance1 = calculateDistance(
-            location.coords.latitude ?? 0,
-            location.coords.longitude ?? 0,
-            locationA?.lat,
-            locationA?.long,
-          );
-          const distance2 = calculateDistance(
-            location.coords.latitude ?? 0,
-            location.coords.longitude ?? 0,
-            locationB.lat,
-            locationB.long,
-          );
-          return distance1 - distance2;
-          // return b
-        })
-        .map(item => {
-          let coords = JSON.parse(item.customer_location_primary);
-          // console.log(coords,'coords')
-          const distance = calculateDistance(
-            location.coords.latitude,
-            location.coords.longitude,
-            coords.lat,
-            coords.long,
-          );
-          return Math.round(distance * 100) / 100;
-        });
-    },
-    [location, motionChangeEvent],
-  );
 
   const initBackgroundGeoLocation = async () => {
     const state: State = await BackgroundGeolocation.ready({
@@ -249,10 +209,7 @@ const MainScreen = () => {
   };
 
   const addMarker = (location: Location) => {
-    // listLocationMarkers.current = [
-    //   ...listLocationMarkers.current,
-    //   [location.coords.longitude, location.coords.latitude],
-    // ];
+    setLocation(location);
     setList(previous => [
       ...previous,
       [location.coords.longitude, location.coords.latitude],
@@ -353,10 +310,19 @@ const MainScreen = () => {
     [location, enabled],
   );
 
-  const onStartTracking = useCallback(async () => {
+  const onStartTracking = async () => {
     location.extras!.startTime = new Date().toISOString();
     await postLastLocation(location);
-  }, [location]);
+    console.log(location.coords, 'coords start tracking');
+    setList([
+      [Number(location.coords.longitude), Number(location.coords.latitude)],
+    ]);
+    await mapboxCameraRef.current?.flyTo(
+      [location.coords.longitude, location.coords.latitude],
+      500,
+    );
+    await mapboxCameraRef.current?.zoomTo(18, 500);
+  };
 
   const onStopTracking = useCallback(async () => {
     location.extras!.endTime = new Date().toISOString();
@@ -458,7 +424,7 @@ const MainScreen = () => {
       if (state.trackingMode == 1) {
         BackgroundGeolocation.start();
         setIsMoving(true);
-        dispatch(appActions.getCustomerRouteAction());
+        // dispatch(appActions.getCustomerRouteAction());
       } else {
         BackgroundGeolocation.startGeofences();
       }
@@ -489,6 +455,7 @@ const MainScreen = () => {
           [location.coords.longitude, location.coords.latitude],
           500,
         );
+        mapboxCameraRef.current?.zoomTo(18, 500);
       })
       .catch((error: LocationError) => {
         backgroundErrorListener(error);
@@ -683,10 +650,6 @@ const MainScreen = () => {
       setStatus('inActive');
       startAnimation();
       toggleTimer();
-      // setList([
-      //   Number(location.coords.longitude),
-      //   Number(locations.current?.coords.latitude),
-      // ]);
       BackgroundGeolocation.start();
       onStartTracking();
       setIsMoving(true);
@@ -694,7 +657,7 @@ const MainScreen = () => {
       onClickEnable(true);
     } else {
       setStatus('active');
-      sortedData(dataCustomer);
+
       setList([]);
       hideAnimated();
       toggleTimer();
@@ -750,23 +713,25 @@ const MainScreen = () => {
           scaleBarEnabled={false}
           zoomEnabled
           scrollEnabled
+          
           logoEnabled={false}
-          styleURL={
-            appTheme === 'dark'
-              ? MAP_TITLE_URL.nightMap
-              : Mapbox.StyleURL.Street
-          }
+          // styleURL={
+          //   appTheme === 'dark'
+          //     ? MAP_TITLE_URL.nightMap
+          //     : Mapbox.StyleURL.Street
+          // }
+          styleURL={MAP_TITLE_URL.adminMap}
           style={styles.mapView}>
           <Mapbox.Camera
             ref={mapboxCameraRef}
             // followUserLocation
 
             centerCoordinate={[
-              location ? location.coords.longitude : 0,
-              location ? location.coords.latitude : 0,
+              location && location.coords.longitude,
+              location && location.coords.latitude,
             ]}
             animationMode={'flyTo'}
-            animationDuration={500}
+            // animationDuration={500}
             // zoomLevel={20}
           />
           <Mapbox.UserLocation
@@ -778,55 +743,26 @@ const MainScreen = () => {
           />
           {/* <Poly */}
 
-          {list &&
-            list.length > 0 &&
-            list.map((marker, index) => {
-              return (
-                <Mapbox.MarkerView key={index.toString()} coordinate={marker}>
-                  {index === 0 ? (
-                    <SvgIcon
-                      source="FlagStart"
-                      size={24}
-                      key={index.toString()}
-                    />
-                  ) : (
-                    <Block
-                      key={index.toString()}
-                      width={10}
-                      height={10}
-                      colorTheme="action"
-                      color={theme.colors.action}
-                      borderRadius={10}
-                    />
-                  )}
-                </Mapbox.MarkerView>
-              );
-            })}
+          {list && list.length > 0
+            ? list.map((marker, index) => {
+                return (
+                  <Mapbox.MarkerView key={index.toString()} coordinate={marker}>
+                    <MarkerItem index={index} />
+                  </Mapbox.MarkerView>
+                );
+              })
+            : null}
 
-          <Mapbox.RasterSource
+          {/* <Mapbox.RasterSource
             id="adminmap"
-            tileUrlTemplates={[MAP_TITLE_URL.adminMap]}>
+            tileUrlTemplates={[MAP_TITLE_URL.nightMap]}>
             <Mapbox.RasterLayer
               id={'adminmap'}
               sourceID={'admin'}
               style={{visibility: 'visible'}}
             />
-          </Mapbox.RasterSource>
-          {dataCustomer && dataCustomer.length > 0
-            ? dataCustomer.map((item, index) => {
-                const newLocation = JSON.parse(item.customer_location_primary!);
-                return (
-                  <Mapbox.MarkerView
-                    key={index}
-                    coordinate={[
-                      Number(newLocation.long),
-                      Number(newLocation.lat),
-                    ]}>
-                    <MarkerItem item={item} index={index} onPress={() => {}} />
-                  </Mapbox.MarkerView>
-                );
-              })
-            : null}
+          </Mapbox.RasterSource> */}
+
           {/* <Block zIndex={99999} position='absolute'> */}
         </Mapbox.MapView>
 
@@ -865,7 +801,7 @@ const MainScreen = () => {
           <ContentView
             title="Quãng đường (km)"
             icon="IconMapping"
-            value={Math.round(odometer) / 1000}
+            value={Math.round(odometer / 1000)}
           />
           <ContentView
             title="Thời gian (phút)"
@@ -904,8 +840,8 @@ const MainScreen = () => {
       <Modal
         isVisible={modalShow}
         backdropOpacity={0.5}
-        onBackButtonPress={onBackButton}
-        onBackdropPress={onBackButton}
+        onBackButtonPress={() => {}}
+        onBackdropPress={() => {}}
         animatedIn="slideInUp"
         animatedOut="slideOutDown">
         <Block
@@ -932,13 +868,6 @@ const MainScreen = () => {
             justifyContent="center"
             alignItems="center"
             direction="row">
-            <TouchableOpacity
-              style={styles.buttonCancelModal}
-              onPress={onBackButton}>
-              <Text fontSize={16} colorTheme="primary" fontWeight="500">
-                Hủy
-              </Text>
-            </TouchableOpacity>
             <TouchableOpacity
               style={styles.buttonModal}
               onPress={onGetCurrentPositionAgain}>
