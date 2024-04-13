@@ -729,15 +729,15 @@ const MainScreen = () => {
           style={styles.mapView}>
           <Mapbox.Camera
             ref={mapboxCameraRef}
+            triggerKey={list.length}
             // followUserLocation
-
-            centerCoordinate={[
-              location ? location.coords.longitude : 0,
-              location ? location.coords.latitude : 0,
-            ]}
+            // centerCoordinate={[
+            //   location ? location.coords.longitude : 0,
+            //   location ? location.coords.latitude : 0,
+            // ]}
             animationMode={'flyTo'}
             animationDuration={500}
-            // zoomLevel={20}
+            zoomLevel={15}
           />
           <Mapbox.UserLocation
             visible={true}
@@ -829,7 +829,7 @@ const MainScreen = () => {
             icon="IconOdometer"
             value={
               isMoving && location?.coords.speed > 0
-                ? Math.round(motionChangeEvent?.location.coords.speed! * 3.6)
+                ? Math.round(location.coords.speed! * 3.6)
                 : 0
             }
           />
