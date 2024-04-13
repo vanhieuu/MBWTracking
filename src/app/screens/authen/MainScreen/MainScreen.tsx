@@ -188,7 +188,7 @@ const MainScreen = () => {
       autoSync: true,
       // autoSyncThreshold: 5,
       maxBatchSize: 50,
-      batchSync: false,
+      batchSync: true,
       maxDaysToPersist: 14,
       // Application
       stopOnTerminate: false,
