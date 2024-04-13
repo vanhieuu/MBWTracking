@@ -12,7 +12,9 @@ export const icons = {
   Scanner:require('./source/scanner.png'),
   Tooltip:require('./source/Tooltip.png'),
   MapPinFill:require('./source/mapPin-fill.png'),
-  Check:require('./source/check.png')
+  Check:require('./source/check.png'),
+  MapDefault:require('./source/mapDefault.png'),
+  MapNight:require('./source/mapNight.png')
 };
 
 export type IconTypes = keyof typeof icons;

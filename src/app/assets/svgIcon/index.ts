@@ -17,8 +17,10 @@ import IconArrowDown from './source/carret-down.svg';
 import LineMap from './source/lineMap.svg';
 import IconLocation from './source/iconLocation.svg';
 import TinyMapPin from './source/tinyMapPin.svg';
-import FlagStart from './source/flag-start.svg'
+import FlagStart from './source/flag-start.svg';
+import CloseIcon from './source/close.svg'
 export const SvgComponent = {
+  CloseIcon,
   FlagStart,
   LineMap,
   TinyMapPin,

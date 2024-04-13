@@ -79,8 +79,8 @@ android {
         applicationId "mbw.next.tracking"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 4
-        versionName "1.3"
+        versionCode 9
+        versionName "1.4"
     }
     signingConfigs {
         debug {

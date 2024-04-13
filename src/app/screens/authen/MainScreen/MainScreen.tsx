@@ -26,10 +26,7 @@ import BackgroundGeolocation, {
 import {API_EK_KEY, BASE_URL_MAP} from '@config/createApi';
 import {
   AppModule,
-  ListCustomerRouter,
-  calculateDistance,
   computeOffsetCoordinate,
-  dispatch,
   formatTime,
   getBearing,
   useDeepCompareEffect,
@@ -39,13 +36,14 @@ import {
 import {shallowEqual} from 'react-redux';
 import BackgroundFetch from 'react-native-background-fetch';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {appActions} from '@store/app-reducer/reducer';
+
 import MarkerItem from './components/MarkerItem';
 import ContentView from './components/ContentView';
 import {navigate} from '@navigation/navigation-service';
 import {APP_SCREENS} from '@navigation/screen-type';
 import {postLastLocation} from '@store/api';
-import {useMMKV} from 'react-native-mmkv';
+import FastImage, {ImageStyle} from 'react-native-fast-image';
+import {dataMap} from './ultil';
 
 const UNDEFINED_LOCATION = {
   timestamp: '',
@@ -65,6 +63,8 @@ const MainScreen = () => {
   const [enabled, setEnabled] = React.useState(false);
   const [isMoving, setIsMoving] = React.useState(false);
   const [modalShow, setModalShow] = React.useState(false);
+  const [modalMapShow, setModalMapShow] = React.useState(false);
+
   // const [updateLocations, setUpdateLocations] = React.useState<any>({});
   const [geofences, setGeofences] = React.useState<any[]>([]);
   const [odometer, setOdometer] = React.useState<any>(0);
@@ -92,11 +92,13 @@ const MainScreen = () => {
     'Không thể lấy được vị trí GPS. Bạn nên di chuyển đến vị trí không bị che khuất và thử lại.',
   );
   const [statusError, setStatusError] = React.useState(0);
+  const [mapURl,setMapURl] = React.useState<string>(MAP_TITLE_URL.adminMap)
   const [status, setStatus] = React.useState('active');
   const loginState = useSelector(
     state => state.login.loginResponse,
     shallowEqual,
   );
+
 
   const {elapsedTime, isRunning, toggleTimer} = useTimer();
   const appState = useRef<AppStateStatus>('unknown');
@@ -450,7 +452,10 @@ const MainScreen = () => {
         if (location && location.coords.speed! > 0) {
           setIsMoving(true);
         }
-
+        setList(previous => [
+          ...previous,
+          [location.coords.longitude, location.coords.latitude],
+        ]);
         mapboxCameraRef.current?.flyTo(
           [location.coords.longitude, location.coords.latitude],
           500,
@@ -645,15 +650,16 @@ const MainScreen = () => {
     }).start();
   }, [status]);
 
-  const onPressStart = useCallback(() => {
+  const onPressStart = () => {
     if (status === 'active') {
       setStatus('inActive');
       startAnimation();
       toggleTimer();
-      BackgroundGeolocation.start();
+      // BackgroundGeolocation.start();
       onStartTracking();
       setIsMoving(true);
       BackgroundGeolocation.changePace(!isMoving);
+      // onClickGetCurrentPosition()
       onClickEnable(true);
     } else {
       setStatus('active');
@@ -666,11 +672,11 @@ const MainScreen = () => {
       BackgroundGeolocation.changePace(!isMoving);
       setIsMoving(false);
       // listLocationMarkers.current = [];
-      BackgroundGeolocation.stop();
+      // BackgroundGeolocation.stop();
 
       // startAnimation();
     }
-  }, [status]);
+  }
 
   // console.log(elapsedTime,'elap')
   // console.log(sortedData(dataCustomer), 'bbb');
@@ -713,25 +719,24 @@ const MainScreen = () => {
           scaleBarEnabled={false}
           zoomEnabled
           scrollEnabled
-          
           logoEnabled={false}
           // styleURL={
           //   appTheme === 'dark'
           //     ? MAP_TITLE_URL.nightMap
           //     : Mapbox.StyleURL.Street
           // }
-          styleURL={MAP_TITLE_URL.adminMap}
+          styleURL={mapURl}
           style={styles.mapView}>
           <Mapbox.Camera
             ref={mapboxCameraRef}
             // followUserLocation
 
             centerCoordinate={[
-              location && location.coords.longitude,
-              location && location.coords.latitude,
+              location ? location.coords.longitude : 0,
+              location ? location.coords.latitude : 0,
             ]}
             animationMode={'flyTo'}
-            // animationDuration={500}
+            animationDuration={500}
             // zoomLevel={20}
           />
           <Mapbox.UserLocation
@@ -765,18 +770,22 @@ const MainScreen = () => {
 
           {/* <Block zIndex={99999} position='absolute'> */}
         </Mapbox.MapView>
-
-        <FAB
-          type="default"
-          icon="Subject"
-          style={styles.buttonGetCurrent(status)}
-        />
-        <FAB
-          type="default"
-          icon="CurrentLocation"
-          style={styles.buttonGetCurrent2(status)}
-          onPress={onClickGetCurrentPosition}
-        />
+        {status != 'active' && (
+          <>
+            <FAB
+              type="default"
+              icon="Subject"
+              style={styles.buttonGetCurrent(status)}
+              onPress={() => setModalMapShow(true)}
+            />
+            <FAB
+              type="default"
+              icon="CurrentLocation"
+              style={styles.buttonGetCurrent2(status)}
+              onPress={onClickGetCurrentPosition}
+            />
+          </>
+        )}
       </Block>
       <TouchableOpacity
         style={styles.startTracking(status)}
@@ -878,6 +887,65 @@ const MainScreen = () => {
           </Block>
         </Block>
       </Modal>
+      <Modal
+        isVisible={modalMapShow}
+        backdropOpacity={0.5}
+        onBackButtonPress={() => setModalMapShow(false)}
+        hasGesture={false}
+        onBackdropPress={() => setModalMapShow(false)}
+        animatedIn="slideInUp"
+        animatedOut="slideOutDown">
+        <Block
+          colorTheme="white"
+          height={200}
+          borderTopLeftRadius={16}
+          borderTopRightRadius={16}
+          justifyContent="flex-start"
+          top={320}>
+          <Block direction="row" paddingVertical={8}>
+            <TouchableOpacity onPress={() => setModalMapShow(false)}>
+              <Block paddingLeft={16}>
+                <SvgIcon source="CloseIcon" size={24} />
+              </Block>
+            </TouchableOpacity>
+            <Block block alignSelf="center" justifyContent="center">
+              <Text
+                textAlign="center"
+                fontSize={18}
+                fontWeight="bold"
+                colorTheme="text_primary">
+                Loại bản đồ
+              </Text>
+            </Block>
+          </Block>
+          <Block
+            justifyContent="space-between"
+            marginTop={20}
+            block
+            direction="row">
+            {dataMap.map((item, index) => {
+              return (
+                <Block block alignItems="center" key={index}>
+                  <TouchableOpacity style={styles.onSelectMapView()}  onPress={() => {
+                    setMapURl(item.mapURl)
+                  }} >
+                    <FastImage
+                      source={item.image}
+                      resizeMode="cover"
+                      style={styles.imageStyle(mapURl,item.mapURl)}
+                    />
+                  </TouchableOpacity>
+                  <Block marginTop={8}>
+                    <Text fontSize={14} colorTheme={mapURl != item.mapURl ? 'text_primary' : 'action'}>
+                      {item.title}
+                    </Text>
+                  </Block>
+                </Block>
+              );
+            })}
+          </Block>
+        </Block>
+      </Modal>
     </SafeAreaView>
   );
 };
@@ -895,6 +963,18 @@ const rootStyles = (theme: AppTheme) =>
       zIndex: 20000,
       position: 'absolute',
     } as ViewStyle,
+    onSelectMapView: (select?: any) =>
+      ({
+        width: 80,
+        height: 80,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: theme.colors.border,
+        justifyContent: 'center',
+        alignItems: 'center',
+        // marginHorizontal: 16,
+      } as ViewStyle),
+
     buttonGetCurrent: (status: string) =>
       ({
         backgroundColor: 'white',
@@ -971,4 +1051,12 @@ const rootStyles = (theme: AppTheme) =>
       borderWidth: 1,
       borderColor: theme.colors.action,
     } as ViewStyle,
+    imageStyle:(mapURL:string,currentURL:string) => ({
+      width: 80,
+      height: 80,
+      borderWidth: 1,
+      borderColor:  mapURL != currentURL ?  theme.colors.border : theme.colors.action,
+      borderRadius: 16,
+      
+    }) as ImageStyle,
   });

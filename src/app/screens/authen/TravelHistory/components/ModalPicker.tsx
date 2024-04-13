@@ -21,7 +21,7 @@ const ModalPicker = (props: Props) => {
   const {showPicker, setShowPicker, onPressConfirm, setDate, date,onCancelPicker} = props;
   const [langCode] = useMMKVString(Language_Code ?? 'vi');
 
-  console.log(date,'date')
+
 
   return (
     <Modal
