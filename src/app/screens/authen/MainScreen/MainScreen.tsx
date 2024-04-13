@@ -86,7 +86,6 @@ const MainScreen = () => {
     React.useState(UNDEFINED_LOCATION);
 
   /// Creating a polygon geofence
-
   //string errors
   const [error, setError] = React.useState(
     'Không thể lấy được vị trí GPS. Bạn nên di chuyển đến vị trí không bị che khuất và thử lại.',
@@ -98,17 +97,18 @@ const MainScreen = () => {
     state => state.login.loginResponse,
     shallowEqual,
   );
+  // console.log(loginState.key_details.project_id)
 
 
   const {elapsedTime, isRunning, toggleTimer} = useTimer();
   const appState = useRef<AppStateStatus>('unknown');
-  const URL = useRef<string>(
+  const URL = 
     BASE_URL_MAP +
       'position/' +
-      `${loginState.projectId ?? '6600fdbb9058b549ce243e5b'}` +
-      `/${loginState.objectId ?? '65eadedc973f307f60fdd6ed'}` +
-      `?api_key=${API_EK_KEY}`,
-  );
+      `${loginState.key_details.project_id}` +
+      `/${loginState.key_details.object_id}` +
+      `?api_key=${API_EK_KEY}`
+  
   const animatedValue = useRef(
     new Animated.Value(Dimensions.get('window').height),
   ).current;
@@ -116,6 +116,7 @@ const MainScreen = () => {
   const hasDisclosedBackgroundPermission = AppModule.storage.getString(
     '@transistorsoft:hasDisclosedBackgroundPermission',
   );
+  // console.log(URL)
 
   React.useEffect(() => {
     if (location) {
@@ -168,8 +169,8 @@ const MainScreen = () => {
 
   const initBackgroundGeoLocation = async () => {
     const state: State = await BackgroundGeolocation.ready({
-      url: URL.current
-        ? URL.current
+      url: URL
+        ? URL
         : 'https://api.ekgis.vn/v2/tracking/locationHistory/position/6556e471178a1db24ac1a711/655824e13a62d46bf149dced?api_key=LnJqtY8kpTY4ZxAtiT5frqPZUNxkDZBXPRSyCi7P',
 
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
@@ -206,7 +207,7 @@ const MainScreen = () => {
   const onLocation = () => {
     if (!location.sample) {
       addMarker(location);
-      // setList(prev => [...prev, location]);
+      // setList(prev => [...prev, location]); 
     }
   };
 
@@ -315,7 +316,6 @@ const MainScreen = () => {
   const onStartTracking = async () => {
     location.extras!.startTime = new Date().toISOString();
     await postLastLocation(location);
-    console.log(location.coords, 'coords start tracking');
     setList([
       [Number(location.coords.longitude), Number(location.coords.latitude)],
     ]);
@@ -420,7 +420,6 @@ const MainScreen = () => {
 
   const onClickEnable = async (value: boolean) => {
     let state = await BackgroundGeolocation.getState();
-    console.log(state.trackingMode, 'trackingMode');
     setEnabled(value);
     if (value) {
       if (state.trackingMode == 1) {
@@ -500,11 +499,9 @@ const MainScreen = () => {
           [location.coords.longitude, location.coords.latitude],
           1000,
         );
-        console.log('[getCurrentPosition] success: ', location);
       })
       .catch((error: LocationError) => {
         backgroundErrorListener(error);
-        console.warn('[getCurrentPosition] error: ', error);
       });
   }, [isMoving, enabled]);
 
