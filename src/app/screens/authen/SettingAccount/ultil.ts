@@ -23,10 +23,10 @@ export const AccountItem:ItemType[] = [
         screen:APP_SCREENS.CHANGE_PASSWORD,
         icon:'IconSetting'
     },
-    {
-        title:translate('title:notificationSettings'),
-        isSwitch:false,
-        screen:"",
-        icon:'IconNoti'
-    },
+    // {
+    //     title:translate('title:notificationSettings'),
+    //     isSwitch:false,
+    //     screen:"",
+    //     icon:'IconNoti'
+    // },
 ]

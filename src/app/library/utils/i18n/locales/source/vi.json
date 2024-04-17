@@ -57,5 +57,8 @@
     "confirmNewPassword":"Xác nhận mật khẩu mới",
     "confirm":"Xác nhận"
 
+  },
+  "noti":{
+    "updateSuccess":"Cập nhật mật khẩu mới thành công"
   }
 }

@@ -34,10 +34,7 @@ const FormChangePass = ({onConfirmPassword}: Props) => {
   });
   const error = useSelector(state => state.app.isError, shallowEqual);
   const loadingApp = useSelector(state => state.app.loadingApp, shallowEqual);
-
   const isNotEmpty = Object.values(formPassword).some(value => value !== '');
-
-  console.log(currentAccount,'?')
 
   useEffect(() => {
     if (error) {

@@ -105,7 +105,7 @@ export function* onChangePassword(action: PayloadAction) {
       );
       if (response.message == 'Cập nhật thành công') {
         yield put(appActions.setSuccessBoolean(true));
-        goBack();
+        // goBack();
       } else {
         yield put(appActions.setErrorBoolean(true));
         showSnack({
