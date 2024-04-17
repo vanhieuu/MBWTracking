@@ -489,10 +489,6 @@ const MainScreen = () => {
             ref={mapboxCameraRef}
             triggerKey={list.length}
             followUserLocation
-            centerCoordinate={[
-              location && location?.coords ? location.coords.longitude : 0,
-              location && location?.coords ? location.coords.latitude : 0,
-            ]}
             animationMode={'flyTo'}
             followUserMode={UserTrackingMode.Follow}
             animationDuration={500}
