@@ -489,6 +489,7 @@ const MainScreen = () => {
   const onUpdateLocation = useCallback((location:RNLocation) =>{
     console.log(location,'location update')
     setLocation(location)
+    setOdometer(location.coords.speed)
     mapboxCameraRef.current?.flyTo(
       [location.coords.longitude, location.coords.latitude],
       500,
