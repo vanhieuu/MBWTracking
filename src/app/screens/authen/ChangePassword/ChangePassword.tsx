@@ -10,6 +10,7 @@ import FormChangePass from './component/FormChangePass';
 import {dispatch, useDisableBackHandler, useSelector} from '@common';
 import {appActions} from '@store/app-reducer/reducer';
 import {shallowEqual} from 'react-redux';
+import { goBack } from '@navigation/navigation-service';
 
 const ChangePassword = () => {
   const theme = useTheme();
@@ -20,6 +21,7 @@ const ChangePassword = () => {
 
   const onBackButtonAndDrop = useCallback(() => {
     dispatch(appActions.setSuccessBoolean(false));
+    goBack()
   }, [success]);
 
   const onConfirmData = useCallback((data: any) => {

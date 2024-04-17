@@ -268,6 +268,7 @@ const MainScreen = () => {
         minimumFetchInterval: 15,
         enableHeadless: true,
         stopOnTerminate: false,
+        
       },
       async taskId => {
         const location = await BackgroundGeolocation.getCurrentPosition({
@@ -288,14 +289,6 @@ const MainScreen = () => {
       },
     );
   };
-
-  // React.useEffect(() => {
-  //   if (!location) return;
-  //   onLocation();
-  // }, [location?.coords]);
-
-  // console.log(location,'motionChangeEvent');
-
   const onClickEnable = async (value: boolean) => {
     let state = await BackgroundGeolocation.getState();
     setEnabled(value);
@@ -332,10 +325,6 @@ const MainScreen = () => {
           [location.coords.longitude, location.coords.latitude],
           1000,
         );
-        // setList(previous => [
-        //   ...previous,
-        //   [location.coords.longitude, location.coords.latitude],
-        // ]);
       })
       .catch((error: LocationError) => {
         backgroundErrorListener(error);

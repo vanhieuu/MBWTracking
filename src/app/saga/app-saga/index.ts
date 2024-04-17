@@ -103,7 +103,8 @@ export function* onChangePassword(action: PayloadAction) {
         changePassword,
         action.payload,
       );
-      if (response.message == 'Cập nhật thành công') {
+      console.log(response,'response')
+      if (response.status == true) {
         yield put(appActions.setSuccessBoolean(true));
         // goBack();
       } else {
