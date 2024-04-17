@@ -14,18 +14,10 @@ type Props = {};
 const LoginScreen = (props: Props) => {
   const theme = useTheme();
   const styles = loginStyle(theme);
-  // const params =
-  //   useRoute<RouteProp<UnAuthenParamList, APP_SCREENS.LOGIN>>().params
-  //     .organizationName;
   const organization = useSelector(
     state => state.login.organization,
     shallowEqual,
   );
-  const isSavePassword = useSelector(
-    state => state.login.isSavePassword,
-    shallowEqual,
-  );
-
   const onConfirmData = useCallback((data: any) => {
     dispatch(loginActions.setAutoLogin(data));
     dispatch(loginActions.postLogin(data));

@@ -302,7 +302,7 @@ const MainScreen = () => {
     if (value) {
       if (state.trackingMode == 1) {
         BackgroundGeolocation.start();
-        // onClickGetCurrentPosition();
+        onClickGetCurrentPosition();
         setIsMoving(true);
         // dispatch(appActions.getCustomerRouteAction());
       } else {
@@ -326,12 +326,16 @@ const MainScreen = () => {
       },
     })
       .then((location: Location) => {
+        console.log(location , 'get current ? ')
         setLocation(location);
-
-        setList(previous => [
-          ...previous,
+        mapboxCameraRef.current?.flyTo(
           [location.coords.longitude, location.coords.latitude],
-        ]);
+          1000,
+        );
+        // setList(previous => [
+        //   ...previous,
+        //   [location.coords.longitude, location.coords.latitude],
+        // ]);
       })
       .catch((error: LocationError) => {
         backgroundErrorListener(error);
@@ -375,29 +379,6 @@ const MainScreen = () => {
   // console.log(sortedData(dataCustomer),'sorted Data')
   // console.log(coordinates,'coordinates')
 
-  const createGeofenceMarker = (geofence: Geofence) => {
-    return {
-      radius: geofence.radius,
-      center: {
-        latitude: geofence.latitude,
-        longitude: geofence.longitude,
-      },
-      identifier: geofence.identifier,
-      vertices: geofence.vertices,
-    };
-  };
-  const createPolygonGeofenceMarker = (geofence: Geofence) => {
-    return {
-      identifier: geofence.identifier,
-      coordinates: geofence.vertices?.map(vertex => {
-        return {
-          latitude: vertex[0],
-          longitude: vertex[1],
-        };
-      }),
-    };
-  };
-  // console.log(listLocationMarkers.current,';listLocation')
 
   const startAnimation = useCallback(() => {
     Animated.timing(animatedValue, {
@@ -488,8 +469,8 @@ const MainScreen = () => {
           style={styles.mapView}>
           <Mapbox.Camera
             ref={mapboxCameraRef}
-            triggerKey={list.length}
-            followUserLocation
+            // triggerKey={list.length}
+            // followUserLocation
             animationMode={'flyTo'}
             followUserMode={UserTrackingMode.Follow}
             animationDuration={500}

@@ -28,13 +28,11 @@ const FormLoginComponents = (props: Props) => {
     usr: '',
     pwd: '',
   });
-  const [check, setCheck] = React.useState<boolean>(savePassword!);
-
+  const currentUser = useSelector(state => state.login.userAccount)
   const onPressSavePassword = () => {
-    if (check) {
-      setCheck(false);
+    if (savePassword) {
+      dispatch(loginActions.setSavePassword(false));
     } else {
-      setCheck(true);
       dispatch(loginActions.setSavePassword(true));
       // dispatch(loginActions.setAutoLogin(value))
     }
@@ -62,7 +60,7 @@ const FormLoginComponents = (props: Props) => {
         justifyContent="space-between">
         <Block direction="row" justifyContent="center" alignItems="center">
           <TouchableOpacity onPress={onPressSavePassword}>
-            {check ? (
+            {savePassword ? (
               <Block
                 borderWidth={1}
                 marginLeft={5}

@@ -26,8 +26,6 @@ const ChangePassword = () => {
     dispatch(appActions.changePassword(data));
   }, []);
 
-  console.log(success, 'succss');
-
   return (
     <SafeAreaView style={styles.root} edges={['top', 'bottom']}>
       <AppHeader />
