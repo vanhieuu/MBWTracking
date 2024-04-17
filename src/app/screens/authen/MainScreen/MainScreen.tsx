@@ -11,24 +11,17 @@ import {
 } from 'react-native';
 import React, {useCallback, useLayoutEffect, useRef} from 'react';
 import {Text, Block, FAB, SvgIcon, Modal, Icon} from '@components';
-import Mapbox, {UserTrackingMode,Location as RNLocation} from '@rnmapbox/maps';
+import Mapbox, {UserTrackingMode, Location as RNLocation} from '@rnmapbox/maps';
 import {MAP_TITLE_URL} from '@config/app.const';
 import {AppTheme, useTheme} from '@theme';
 import BackgroundGeolocation, {
   Geofence,
-
   Location,
   LocationError,
-
   State,
 } from 'react-native-background-geolocation';
 import {API_EK_KEY, BASE_URL_MAP} from '@config/createApi';
-import {
-  AppModule,
-  formatTime,
-  useSelector,
-  useTimer,
-} from '@common';
+import {AppModule, formatTime, useSelector, useTimer} from '@common';
 import {shallowEqual} from 'react-redux';
 import BackgroundFetch from 'react-native-background-fetch';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -41,8 +34,6 @@ import {postLastLocation} from '@store/api';
 import FastImage, {ImageStyle} from 'react-native-fast-image';
 import {dataMap} from './ultil';
 import ModalError from './components/ModalError';
-
-
 
 const MainScreen = () => {
   const theme = useTheme();
@@ -59,11 +50,7 @@ const MainScreen = () => {
   const [modalMapShow, setModalMapShow] = React.useState(false);
 
   // const [updateLocations, setUpdateLocations] = React.useState<any>({});
-  const [geofences, setGeofences] = React.useState<any[]>([]);
   const [odometer, setOdometer] = React.useState<any>(0);
-
-  /// Creating a polygon geofence
-  //string errors
   const [error, setError] = React.useState(
     'Không thể lấy được vị trí GPS. Bạn nên di chuyển đến vị trí không bị che khuất và thử lại.',
   );
@@ -88,7 +75,6 @@ const MainScreen = () => {
   const animatedValue = useRef(
     new Animated.Value(Dimensions.get('window').height),
   ).current;
-  const subscriptions = useRef<any[]>([]);
   const hasDisclosedBackgroundPermission = AppModule.storage.getString(
     '@transistorsoft:hasDisclosedBackgroundPermission',
   );
@@ -100,18 +86,7 @@ const MainScreen = () => {
     } else {
       return;
     }
-  }, [location]);
-  // React.useEffect(() => {
-  //   onEnabledChange();
-  // }, [enabled]);
-  const subscribe = useCallback((subscription: any) => {
-    subscriptions.current.push(subscription);
-  }, []);
-
-  const unsubscribe = () => {
-    subscriptions.current.forEach((subscription: any) => subscription.remove());
-    subscriptions.current.splice(0, subscriptions.current.length);
-  };
+  }, [location,list]);
 
   const onDiscloseBackgroundPermission = () => {
     AppModule.storage.set(
@@ -207,36 +182,24 @@ const MainScreen = () => {
     BackgroundGeolocation.getState().then((state: State) => {
       setEnabled(state.enabled);
     });
-
-    // For printing odometer in bottom toolbar.
     const locationSubscriber: any = BackgroundGeolocation.onLocation(
       lo => setLocation(lo),
       error => {
         console.warn('[onLocation] ERROR: ', error);
       },
     );
-    // Auto-toggle [ play ] / [ pause ] button in bottom toolbar on motionchange events.
     const motionChangeSubscriber: any = BackgroundGeolocation.onMotionChange(
       location => {
         setIsMoving(location.isMoving);
+        setLocation(location);
       },
     );
-    // For printing the motion-activity in bottom toolbar.
-
     const notificationActionSubscriber: any =
       BackgroundGeolocation.onNotificationAction(button => {
         console.log('[onNotificationAction]', button);
       });
-
-    // Configure BackgroundFetch (optional)
     initBackgroundFetch();
-
-    // Configure BackgroundGeolocation.ready().
     initBackgroundGeoLocation();
-
-    // Boilerplate authorization-listener for tracker.transistorsoft.com (nothing interesting)
-    // registerTransistorAuthorizationListener(navigation);
-
     AppState.addEventListener('change', _handleAppStateChange);
 
     return () => {
@@ -246,7 +209,6 @@ const MainScreen = () => {
       motionChangeSubscriber.remove();
       clearMarkers();
       notificationActionSubscriber.remove();
-      unsubscribe();
     };
   }, []);
 
@@ -482,19 +444,21 @@ const MainScreen = () => {
   // console.log(location.coords,'list')
   const clearMarkers = () => {
     setList([]);
-    setGeofences([]);
   };
 
-
-  const onUpdateLocation = useCallback((location:RNLocation) =>{
-    console.log(location,'location update')
-    setLocation(location)
-    setOdometer(location.coords.speed)
-    mapboxCameraRef.current?.flyTo(
-      [location.coords.longitude, location.coords.latitude],
-      500,
-    );
-  },[list])
+  const onUpdateLocation = useCallback(
+    (location: RNLocation) => {
+      console.log(location, 'location update');
+      setLocation(location);
+      setOdometer(location.coords.speed);
+      mapboxCameraRef.current?.flyTo(
+        [location.coords.longitude, location.coords.latitude],
+        500,
+      );
+      mapboxCameraRef.current?.zoomTo(18,500)
+    },
+    [list],
+  );
 
   return (
     <SafeAreaView style={styles.root} edges={['bottom']}>
