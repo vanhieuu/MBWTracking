@@ -9,6 +9,7 @@ import {loginActions, setResponseLogin} from '@store/login-reducer/reducer';
 import {apiLogin, apiVerifyOrganization} from '@store/api/loginApi';
 import { AppModule } from "@common";
 import {call, put} from 'typed-redux-saga';
+import { translate } from '@utils';
 
 export function* verifyOrganizationSagas(action: PayloadAction) {
   if (loginActions.postOrganization.match(action)) {
@@ -50,6 +51,8 @@ export function* onLogin(action: PayloadAction) {
         AppModule.storage.set(Api_secret, result.key_details.api_secret);
         yield* put(setResponseLogin(result));
         // navigate(APP_SCREENS.AUTHORIZED);
+      }else{
+        yield* put(appActions.setError(translate('error:errorLogin')))
       }
     } catch (err) {
         

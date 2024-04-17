@@ -4,10 +4,18 @@ import {SLICE_NAME} from '@store/app-reducer/type';
 import {ILogin} from '@common';
 
 const initialLoginState: ILoginState = {
-  loginResponse: {},
+  loginResponse: {
+    key_details: {
+      api_key: '',
+      api_secret: '',
+      object_id: '',
+      project_id: '',
+    },
+  },
   organization: {},
   isSavePassword: false,
   password: '',
+  userAccount:{}
 };
 const loginSlice = createSlice({
   name: SLICE_NAME.LOGIN,
@@ -18,9 +26,10 @@ const loginSlice = createSlice({
     setResponseOrganization: (state, action: PayloadAction<any>) =>
       void (state.organization = action.payload),
     setSavePassword: (state, action: PayloadAction<any>) =>
-     void (state.isSavePassword = action.payload),
+      void (state.isSavePassword = action.payload),
     setPassword: (state, action: PayloadAction<any>) =>
-      void(state.password = action.payload),
+      void (state.password = action.payload),
+    setAutoLogin:(state,action:PayloadAction<any> ) => void(state.userAccount = action.payload)
   },
 });
 

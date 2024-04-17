@@ -35,6 +35,7 @@ export const rootStyles = (theme: AppTheme) =>
       justifyContent: 'space-between',
       paddingHorizontal: 16,
       marginBottom: 16,
+      marginTop:20
     } as ViewStyle,
   });
 

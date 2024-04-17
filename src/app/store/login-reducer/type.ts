@@ -6,7 +6,8 @@ export interface ILoginState {
     },
     organization:any,
     isSavePassword?:boolean,
-    password?:string
+    password?:string,
+    userAccount?:any
 }
 
 export enum LOGIN_ACTION {

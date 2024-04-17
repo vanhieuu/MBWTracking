@@ -1,4 +1,4 @@
-import {AppInput, Block, Text} from '@components';
+import {AppInput, Block, Icon, Text} from '@components';
 import React, {useCallback} from 'react';
 import isEqual from 'react-fast-compare';
 import {formStyle} from '../style';
@@ -9,7 +9,7 @@ import {shallowEqual} from 'react-redux';
 import {loginActions} from '@store/login-reducer/reducer';
 
 type Props = {
-  onConfirmData:(data:LoginData) => void
+  onConfirmData: (data: LoginData) => void;
 };
 
 interface LoginData {
@@ -31,18 +31,14 @@ const FormLoginComponents = (props: Props) => {
   const [check, setCheck] = React.useState<boolean>(savePassword!);
 
   const onPressSavePassword = () => {
-    console.log(check, 'check');
-
     if (check) {
       setCheck(false);
     } else {
       setCheck(true);
       dispatch(loginActions.setSavePassword(true));
+      // dispatch(loginActions.setAutoLogin(value))
     }
   };
-
-  
-
 
   return (
     <Block block paddingHorizontal={16} marginTop={20}>
@@ -66,28 +62,43 @@ const FormLoginComponents = (props: Props) => {
         justifyContent="space-between">
         <Block direction="row" justifyContent="center" alignItems="center">
           <TouchableOpacity onPress={onPressSavePassword}>
-            <Block
-              borderWidth={1}
-              marginLeft={5}
-              width={15}
-              marginRight={8}
-              height={15}
-              colorTheme={check ? 'primary' : 'white'}
-              borderRadius={3}
-              borderColor={theme.colors.black}
-            />
+            {check ? (
+              <Block
+                borderWidth={1}
+                marginLeft={5}
+                width={15}
+                marginRight={8}
+                height={15}
+                borderRadius={3}
+                borderColor={theme.colors.black}>
+                <Icon size={15} colorTheme="primary" icon="Check" />
+              </Block>
+            ) : (
+              <Block
+                borderWidth={1}
+                marginLeft={5}
+                width={15}
+                marginRight={8}
+                height={15}
+                colorTheme={'white'}
+                borderRadius={3}
+                borderColor={theme.colors.black}
+              />
+            )}
           </TouchableOpacity>
-          <Text colorTheme='black' >Lưu mật khẩu</Text>
+          <Text colorTheme="black">Lưu mật khẩu</Text>
         </Block>
 
-        <Block>
+        {/* <Block>
           <TouchableOpacity>
-            <Text colorTheme='primary'>Quên mật khâu</Text>
+            <Text colorTheme="primary">Quên mật khâu</Text>
           </TouchableOpacity>
-        </Block>
+        </Block> */}
       </Block>
       <Block marginTop={32}>
-        <TouchableOpacity style={styles.button} onPress={() => props.onConfirmData(value)}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => props.onConfirmData(value)}>
           <Text fontSize={16} fontWeight="700" colorTheme="white">
             Đăng nhập
           </Text>

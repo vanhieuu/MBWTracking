@@ -41,7 +41,7 @@ const AppInputComponent: FC<AppInputProps> = ({
           ...styles,
         }}
         outlineStyle={{
-          borderColor: !isFocus ? colors.text_disable : 'rgba(99, 79, 145, 1)',
+          borderColor: !isFocus ? colors.text_disable : error ? colors.error :  'rgba(99, 79, 145, 1)',
           borderRadius: 8,
         }}
         mode={'outlined'}

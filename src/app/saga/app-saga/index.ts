@@ -5,14 +5,16 @@ import {
   apiGetListCustomer,
   apiGetTravelHistory,
   apiGetUserProfile,
+  changePassword,
 } from '../../store/api/appApi';
 import {call, put} from 'typed-redux-saga';
 import {apiVerifyOrganization} from '../../store/api/loginApi';
 import {STT_OK} from '@config/api.const';
-import {navigate} from '@navigation/navigation-service';
+import {goBack, navigate} from '@navigation/navigation-service';
 import {APP_SCREENS} from '@navigation/screen-type';
 import {loginActions} from '@store/login-reducer/reducer';
 import {showSnack} from '@components';
+import {translate} from '@utils';
 
 export function* getListCustomerRouter(action: PayloadAction) {
   if (appActions.getCustomerRouteAction.match(action)) {
@@ -45,9 +47,7 @@ export function* getTravelHistory(action: PayloadAction) {
     }
   }
 }
-export function* getMoreTravelHistory(action:PayloadAction){
-  
-}
+export function* getMoreTravelHistory(action: PayloadAction) {}
 
 export function* getUserInfor(action: PayloadAction) {
   if (appActions.getUserInfor.match(action)) {
@@ -91,6 +91,33 @@ export function* verifyOrganizationSagas(action: PayloadAction) {
         }),
       );
     } finally {
+    }
+  }
+}
+
+export function* onChangePassword(action: PayloadAction) {
+  if (appActions.changePassword.match(action)) {
+    try {
+      yield put(appActions.onLoadApp());
+      const response: ResponseGenerator = yield call(
+        changePassword,
+        action.payload,
+      );
+      if (response.message == 'Cập nhật thành công') {
+        yield put(appActions.setSuccessBoolean(true));
+        goBack();
+      } else {
+        yield put(appActions.setErrorBoolean(true));
+        showSnack({
+          msg: translate('error:errorOnRequest') as string,
+          interval: 2000,
+          type: 'error',
+        });
+      }
+    } catch (err) {
+      yield put(appActions.setErrorBoolean(true));
+    } finally {
+      yield put(appActions.onLoadAppEnd());
     }
   }
 }

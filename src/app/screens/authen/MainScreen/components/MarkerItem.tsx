@@ -14,7 +14,7 @@ const MarkerItem: FC<MarkerItemProps> = ({index}) => {
   return (
     <Block alignItems="center" justifyContent="center">
       {index === 0 ? (
-        <SvgIcon source="FlagStart" size={24} />
+        <SvgIcon source="FlagStart" size={40}    />
       ) : (
         <Block
           key={index.toString()}

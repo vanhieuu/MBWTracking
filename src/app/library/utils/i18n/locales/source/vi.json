@@ -31,7 +31,8 @@
     "serverError": "Lỗi máy chủ",
     "errorNetwork": "Lỗi kết nối! Vui lòng kiểm tra lại kết nối.",
     "errorGetPermission": "Lỗi trong quá trình kiểm tra quyền ứng dụng",
-    "tokenExpired": "Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại!"
+    "tokenExpired": "Phiên làm việc của bạn đã hết hạn. Vui lòng đăng nhập lại!",
+    "errorLogin":"Đăng nhập thất bại, vui lòng kiểm tra lại mật khẩu hoặc tài khoản của bạn"
   },
   "common": {
     "greetingChat": "Bây giờ các bạn có thể trò chuyện với nhau"
@@ -44,5 +45,17 @@
     "success": "Thành công",
     "loading": "Loading",
     "select": "Chọn"
+  },
+  "title":{
+    "accountSettings":"Cài đặt tài khoản",
+    "enableFaceID": "Đăng nhập bằng Face ID/TouchId",
+    "changePassword":"Đổi mật khẩu",
+    "notificationSettings":"Cài đặt thông báo",
+    "resetPassword":"Đặt lại mật khẩu",
+    "currentPassword":"Mật khâu hiện tại",
+    "newPassword":"Mật khẩu mới",
+    "confirmNewPassword":"Xác nhận mật khẩu mới",
+    "confirm":"Xác nhận"
+
   }
 }

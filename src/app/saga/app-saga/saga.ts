@@ -16,4 +16,8 @@ export function* appSaga() {
     appActions.getTravelHistoryAction.type.toString(),
     Saga.getTravelHistory,
   );
+  yield* takeLatest(
+    appActions.changePassword.type.toString(),
+    Saga.onChangePassword,
+  );
 }

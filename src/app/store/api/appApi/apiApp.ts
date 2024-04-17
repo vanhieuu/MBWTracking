@@ -1,5 +1,5 @@
 import {getState} from '@common';
-import {GET_LIST_ROUTER_MAP_VIEW, GET_USER_PROFILE} from '@config/api.const';
+import {CHANGE_PASSWORD, GET_LIST_ROUTER_MAP_VIEW, GET_USER_PROFILE} from '@config/api.const';
 import {
   API_EK_KEY,
   API_REVERSE_KEY,
@@ -8,13 +8,14 @@ import {
   EK_REVERSE_URL,
   createApi,
 } from '@config/createApi';
+import axios from 'axios';
 
 const loginState = getState('login').loginResponse;
 const URL_MAP =
   BASE_URL_MAP +
   'positions/' +
-  `${loginState.projectId! ?? '6600fdbb9058b549ce243e5b'}` +
-  `/${loginState.objectId ?? '65eadedc973f307f60fdd6ed'}` +
+  `${loginState.key_details.project_id ?? '6600fdbb9058b549ce243e5b'}` +
+  `/${loginState.key_details.object_id ?? '65eadedc973f307f60fdd6ed'}` +
   `?api_key=${API_EK_KEY}`;
 
 const MAP_URL =
@@ -23,7 +24,7 @@ const MAP_URL =
 export const appApi = {
   getCustomerApi() {
     return createApi().get(GET_LIST_ROUTER_MAP_VIEW, {
-      baseURL: BASE_URL,
+    baseURL: BASE_URL,
     });
   },
   getUserInfor() {
@@ -35,7 +36,7 @@ export const appApi = {
     );
   },
   getLocation(lon: any, lat: any) {
-    return createApi().get(
+    return axios.get(
       EK_REVERSE_URL +
         `point.lon=${lon}` +
         `&point.lat=${lat}` +
@@ -43,6 +44,9 @@ export const appApi = {
     );
   },
   postLastLocation(location: any) {
-    return createApi().post(MAP_URL, {location: location});
+    return axios.post(MAP_URL, {location: location});
   },
+  changePassword(data:any){
+    return createApi().put(CHANGE_PASSWORD,data)
+  }
 };

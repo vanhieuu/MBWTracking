@@ -3,7 +3,14 @@ import { StyleSheet,ViewStyle,TextStyle } from "react-native";
 
 
 export const rootStyles = (theme:AppTheme) => StyleSheet.create({
-
+    langSelectButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 16,
+        marginBottom: 16,
+        marginTop:20
+      } as ViewStyle,
 })
 
 

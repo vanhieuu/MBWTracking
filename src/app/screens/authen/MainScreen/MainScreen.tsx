@@ -11,25 +11,21 @@ import {
 } from 'react-native';
 import React, {useCallback, useLayoutEffect, useRef} from 'react';
 import {Text, Block, FAB, SvgIcon, Modal, Icon} from '@components';
-import Mapbox from '@rnmapbox/maps';
+import Mapbox, {UserTrackingMode,Location as RNLocation} from '@rnmapbox/maps';
 import {MAP_TITLE_URL} from '@config/app.const';
 import {AppTheme, useTheme} from '@theme';
 import BackgroundGeolocation, {
   Geofence,
-  GeofenceEvent,
-  GeofencesChangeEvent,
+
   Location,
   LocationError,
-  MotionChangeEvent,
+
   State,
 } from 'react-native-background-geolocation';
 import {API_EK_KEY, BASE_URL_MAP} from '@config/createApi';
 import {
   AppModule,
-  computeOffsetCoordinate,
   formatTime,
-  getBearing,
-  useDeepCompareEffect,
   useSelector,
   useTimer,
 } from '@common';
@@ -44,12 +40,9 @@ import {APP_SCREENS} from '@navigation/screen-type';
 import {postLastLocation} from '@store/api';
 import FastImage, {ImageStyle} from 'react-native-fast-image';
 import {dataMap} from './ultil';
+import ModalError from './components/ModalError';
 
-const UNDEFINED_LOCATION = {
-  timestamp: '',
-  latitude: 0,
-  longitude: 0,
-};
+
 
 const MainScreen = () => {
   const theme = useTheme();
@@ -68,22 +61,6 @@ const MainScreen = () => {
   // const [updateLocations, setUpdateLocations] = React.useState<any>({});
   const [geofences, setGeofences] = React.useState<any[]>([]);
   const [odometer, setOdometer] = React.useState<any>(0);
-  const [polygonGeofences, setPolygonGeofences] = React.useState<any[]>([]);
-  const [geofenceEvent, setGeofenceEvent] =
-    React.useState<GeofenceEvent | null>(null);
-  const [geofencesChangeEvent, setGeofencesChangeEvent] =
-    React.useState<GeofencesChangeEvent | null>(null);
-  const [motionChangeEvent, setMotionChangeEvent] =
-    React.useState<MotionChangeEvent | null>(null);
-  const [geofencesHit, setGeofencesHit] = React.useState<any[]>([]);
-  const [geofencesHitEvents, setGeofenceHitEvents] = React.useState<any[]>([]);
-  const [coordinates, setCoordinates] = React.useState<any[]>([]);
-  const [lastMotionChangeEvent, setLastMotionChangeEvent] = React.useState<
-    MotionChangeEvent | any
-  >(null);
-  const [stopZones, setStopZones] = React.useState<any[]>([]);
-  const [stationaryLocation, setStationaryLocation] =
-    React.useState(UNDEFINED_LOCATION);
 
   /// Creating a polygon geofence
   //string errors
@@ -91,7 +68,7 @@ const MainScreen = () => {
     'Không thể lấy được vị trí GPS. Bạn nên di chuyển đến vị trí không bị che khuất và thử lại.',
   );
   const [statusError, setStatusError] = React.useState(0);
-  const [mapURl,setMapURl] = React.useState<string>(MAP_TITLE_URL.adminMap)
+  const [mapURl, setMapURl] = React.useState<string>(MAP_TITLE_URL.adminMap);
   const [status, setStatus] = React.useState('active');
   const loginState = useSelector(
     state => state.login.loginResponse,
@@ -99,16 +76,15 @@ const MainScreen = () => {
   );
   // console.log(loginState.key_details.project_id)
 
-
   const {elapsedTime, isRunning, toggleTimer} = useTimer();
   const appState = useRef<AppStateStatus>('unknown');
-  const URL = 
+  const URL =
     BASE_URL_MAP +
-      'position/' +
-      `${loginState.key_details.project_id}` +
-      `/${loginState.key_details.object_id}` +
-      `?api_key=${API_EK_KEY}`
-  
+    'position/' +
+    `${loginState.key_details.project_id}` +
+    `/${loginState.key_details.object_id}` +
+    `?api_key=${API_EK_KEY}`;
+
   const animatedValue = useRef(
     new Animated.Value(Dimensions.get('window').height),
   ).current;
@@ -207,16 +183,22 @@ const MainScreen = () => {
   const onLocation = () => {
     if (!location.sample) {
       addMarker(location);
-      // setList(prev => [...prev, location]); 
+    } else {
+      return;
     }
   };
 
-  const addMarker = (location: Location) => {
+  const addMarker = (location: Location | any) => {
     setLocation(location);
     setList(previous => [
       ...previous,
       [location.coords.longitude, location.coords.latitude],
     ]);
+    mapboxCameraRef.current?.moveTo(
+      [location?.coords?.longitude, location?.coords?.latitude],
+      500,
+    );
+    mapboxCameraRef.current?.zoomTo(18, 200);
   };
 
   // console.log(list,'listMarker')
@@ -225,15 +207,10 @@ const MainScreen = () => {
     BackgroundGeolocation.getState().then((state: State) => {
       setEnabled(state.enabled);
     });
-    subscribe(
-      BackgroundGeolocation.onLocation(setLocation, error => {
-        console.warn('[onLocation] ERROR: ', error);
-      }),
-    );
 
     // For printing odometer in bottom toolbar.
     const locationSubscriber: any = BackgroundGeolocation.onLocation(
-      setLocation,
+      lo => setLocation(lo),
       error => {
         console.warn('[onLocation] ERROR: ', error);
       },
@@ -242,7 +219,6 @@ const MainScreen = () => {
     const motionChangeSubscriber: any = BackgroundGeolocation.onMotionChange(
       location => {
         setIsMoving(location.isMoving);
-        setMotionChangeEvent(location);
       },
     );
     // For printing the motion-activity in bottom toolbar.
@@ -316,14 +292,7 @@ const MainScreen = () => {
   const onStartTracking = async () => {
     location.extras!.startTime = new Date().toISOString();
     await postLastLocation(location);
-    setList([
-      [Number(location.coords.longitude), Number(location.coords.latitude)],
-    ]);
-    await mapboxCameraRef.current?.flyTo(
-      [location.coords.longitude, location.coords.latitude],
-      500,
-    );
-    await mapboxCameraRef.current?.zoomTo(18, 500);
+    onClickGetCurrentPosition();
   };
 
   const onStopTracking = useCallback(async () => {
@@ -358,65 +327,12 @@ const MainScreen = () => {
     );
   };
 
-  const onMotionChange = useCallback(async () => {
-    let location = motionChangeEvent?.location;
-
-    // console.log(motionChangeEvent?.isMoving,'isMoving')
-    if (motionChangeEvent?.isMoving) {
-      if (lastMotionChangeEvent) {
-        setStopZones(previous => [
-          ...previous,
-          {
-            coordinate: {
-              latitude: lastMotionChangeEvent.location.coords.latitude,
-              longitude: lastMotionChangeEvent.location.coords.longitude,
-            },
-            key: lastMotionChangeEvent.location.timestamp,
-          },
-        ]);
-      }
-      setLocation(motionChangeEvent.location);
-
-      setList(prev => [
-        ...prev,
-        [
-          motionChangeEvent.location.coords.longitude,
-          motionChangeEvent.location.coords.latitude,
-        ],
-      ]);
-      // console.log(location,'location')
-      setOdometer(motionChangeEvent.location.odometer);
-      setStationaryLocation(UNDEFINED_LOCATION);
-    } else {
-      let state = await BackgroundGeolocation.getState();
-      setStationaryLocation({
-        timestamp: location?.timestamp!,
-        latitude: location?.coords.latitude!,
-        longitude: location?.coords.longitude!,
-      });
-    }
-    setLastMotionChangeEvent(motionChangeEvent);
-  }, [location]);
-
-  React.useEffect(() => {
-    if (!geofenceEvent) return;
-    onGeofence();
-  }, [geofenceEvent]);
   React.useEffect(() => {
     if (!location) return;
     onLocation();
-  }, [location]);
+  }, [location?.coords]);
 
-  React.useEffect(() => {
-    if (!motionChangeEvent) return;
-    onMotionChange();
-  }, [motionChangeEvent, location]);
   // console.log(location,'motionChangeEvent');
-
-  React.useEffect(() => {
-    if (!geofencesChangeEvent) return;
-    onGeofencesChange();
-  }, [geofencesChangeEvent]);
 
   const onClickEnable = async (value: boolean) => {
     let state = await BackgroundGeolocation.getState();
@@ -424,6 +340,7 @@ const MainScreen = () => {
     if (value) {
       if (state.trackingMode == 1) {
         BackgroundGeolocation.start();
+        // onClickGetCurrentPosition();
         setIsMoving(true);
         // dispatch(appActions.getCustomerRouteAction());
       } else {
@@ -448,18 +365,11 @@ const MainScreen = () => {
     })
       .then((location: Location) => {
         setLocation(location);
-        if (location && location.coords.speed! > 0) {
-          setIsMoving(true);
-        }
+
         setList(previous => [
           ...previous,
           [location.coords.longitude, location.coords.latitude],
         ]);
-        mapboxCameraRef.current?.flyTo(
-          [location.coords.longitude, location.coords.latitude],
-          500,
-        );
-        mapboxCameraRef.current?.zoomTo(18, 500);
       })
       .catch((error: LocationError) => {
         backgroundErrorListener(error);
@@ -473,17 +383,12 @@ const MainScreen = () => {
     }
   };
 
-  const onBackButton = useCallback(() => {
-    setModalShow(false);
-    // onClickGetCurrentPosition();
-  }, [statusError]);
-
   const onGetCurrentPositionAgain = () => {
     setModalShow(false);
     onClickGetCurrentPosition();
   };
 
-  useDeepCompareEffect(() => {
+  React.useEffect(() => {
     BackgroundGeolocation.getCurrentPosition({
       persist: true,
       samples: 2,
@@ -503,73 +408,10 @@ const MainScreen = () => {
       .catch((error: LocationError) => {
         backgroundErrorListener(error);
       });
-  }, [isMoving, enabled]);
+  }, [enabled]);
 
   // console.log(sortedData(dataCustomer),'sorted Data')
   // console.log(coordinates,'coordinates')
-  const onGeofence = () => {
-    const location: Location | any = geofenceEvent?.location;
-    // Push our geofence event coordinate onto the Polyline -- BGGeo deosn't fire onLocation for geofence events.
-    setCoordinates(previous => [
-      ...previous,
-      {
-        latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-      },
-    ]);
-
-    const marker = geofences.find((m: any) => {
-      return m.identifier === geofenceEvent?.identifier;
-    });
-
-    if (!marker) {
-      return;
-    }
-
-    //marker.fillColor = GEOFENCE_STROKE_COLOR_ACTIVATED;
-    //marker.strokeColor = GEOFENCE_STROKE_COLOR_ACTIVATED;
-
-    const coords = location.coords;
-
-    let hit = geofencesHit.find((hit: any) => {
-      return hit.identifier === geofenceEvent?.identifier;
-    });
-
-    if (!hit) {
-      hit = {
-        identifier: geofenceEvent?.identifier,
-        radius: marker.radius,
-        center: {
-          latitude: marker.center.latitude,
-          longitude: marker.center.longitude,
-        },
-        events: [],
-      };
-      setGeofencesHit(previous => [...previous, hit]);
-    }
-    // Get bearing of location relative to geofence center.
-    const bearing = getBearing(marker.center, location.coords);
-    const edgeCoordinate = computeOffsetCoordinate(
-      marker.center,
-      marker.radius,
-      bearing,
-    );
-    const record = {
-      coordinates: [
-        edgeCoordinate,
-        {latitude: coords.latitude, longitude: coords.longitude},
-      ],
-      heading: location.coords.heading,
-      action: geofenceEvent?.action,
-      key:
-        geofenceEvent?.identifier +
-        ':' +
-        geofenceEvent?.action +
-        ':' +
-        location.timestamp,
-    };
-    setGeofenceHitEvents(previous => [...previous, record]);
-  };
 
   const createGeofenceMarker = (geofence: Geofence) => {
     return {
@@ -594,39 +436,6 @@ const MainScreen = () => {
     };
   };
   // console.log(listLocationMarkers.current,';listLocation')
-
-  const onGeofencesChange = () => {
-    let on: any = geofencesChangeEvent?.on;
-    let off: any = geofencesChangeEvent?.off;
-
-    // Filter out all "off" geofences.
-    let geofencesOn = geofences.filter((geofence: Geofence) => {
-      return off.indexOf(geofence.identifier) < 0;
-    });
-    let polygonsOn = polygonGeofences.filter((geofence: Geofence) => {
-      return off.indexOf(geofence.identifier) < 0;
-    });
-
-    // Add new "on" geofences.
-    on.forEach((geofence: Geofence) => {
-      const circularGeofenceMarker = geofencesOn.find((m: Geofence) => {
-        return m.identifier === geofence.identifier;
-      });
-      if (!circularGeofenceMarker) {
-        geofencesOn.push(createGeofenceMarker(geofence));
-      }
-      if (geofence.vertices!.length > 0) {
-        const polygonGeofenceMarker = polygonsOn.find((m: Geofence) => {
-          return m.identifier === geofence.identifier;
-        });
-        if (!polygonGeofenceMarker) {
-          polygonsOn.push(createPolygonGeofenceMarker(geofence));
-        }
-      }
-    });
-    setGeofences(geofencesOn);
-    setPolygonGeofences(polygonsOn);
-  };
 
   const startAnimation = useCallback(() => {
     Animated.timing(animatedValue, {
@@ -660,7 +469,6 @@ const MainScreen = () => {
       onClickEnable(true);
     } else {
       setStatus('active');
-
       setList([]);
       hideAnimated();
       toggleTimer();
@@ -668,32 +476,25 @@ const MainScreen = () => {
       onClickEnable(false);
       BackgroundGeolocation.changePace(!isMoving);
       setIsMoving(false);
-      // listLocationMarkers.current = [];
-      // BackgroundGeolocation.stop();
-
-      // startAnimation();
     }
-  }
-
-  // console.log(elapsedTime,'elap')
-  // console.log(sortedData(dataCustomer), 'bbb');
-  const clearMarkers = () => {
-    setCoordinates([]);
-    setStopZones([]);
-    setGeofences([]);
-    setPolygonGeofences([]);
-    setGeofencesHit([]);
-    setGeofenceHitEvents([]);
-    setGeofenceEvent(null);
   };
 
-  // useLayoutEffect(() =>{
+  // console.log(location.coords,'list')
+  const clearMarkers = () => {
+    setList([]);
+    setGeofences([]);
+  };
 
-  // },[listLocationMarkers.current])
 
-  // console.log(list,'list')
-  // console.log(updateLocations,'update Locations')
-  // console.log(motionChangeEvent,'motion change')
+  const onUpdateLocation = useCallback((location:RNLocation) =>{
+    console.log(location,'location update')
+    setLocation(location)
+    mapboxCameraRef.current?.flyTo(
+      [location.coords.longitude, location.coords.latitude],
+      500,
+    );
+  },[list])
+
   return (
     <SafeAreaView style={styles.root} edges={['bottom']}>
       <TouchableOpacity
@@ -717,30 +518,27 @@ const MainScreen = () => {
           zoomEnabled
           scrollEnabled
           logoEnabled={false}
-          // styleURL={
-          //   appTheme === 'dark'
-          //     ? MAP_TITLE_URL.nightMap
-          //     : Mapbox.StyleURL.Street
-          // }
           styleURL={mapURl}
           style={styles.mapView}>
           <Mapbox.Camera
             ref={mapboxCameraRef}
             triggerKey={list.length}
-            // followUserLocation
-            // centerCoordinate={[
-            //   location ? location.coords.longitude : 0,
-            //   location ? location.coords.latitude : 0,
-            // ]}
+            followUserLocation
+            centerCoordinate={[
+              location && location?.coords ? location.coords.longitude : 0,
+              location && location?.coords ? location.coords.latitude : 0,
+            ]}
             animationMode={'flyTo'}
+            followUserMode={UserTrackingMode.Follow}
             animationDuration={500}
-            zoomLevel={15}
+            zoomLevel={18}
           />
           <Mapbox.UserLocation
             visible={true}
             animated
             androidRenderMode="gps"
             minDisplacement={5}
+            onUpdate={onUpdateLocation}
             showsUserHeadingIndicator={true}
           />
           {/* <Poly */}
@@ -754,18 +552,6 @@ const MainScreen = () => {
                 );
               })
             : null}
-
-          {/* <Mapbox.RasterSource
-            id="adminmap"
-            tileUrlTemplates={[MAP_TITLE_URL.nightMap]}>
-            <Mapbox.RasterLayer
-              id={'adminmap'}
-              sourceID={'admin'}
-              style={{visibility: 'visible'}}
-            />
-          </Mapbox.RasterSource> */}
-
-          {/* <Block zIndex={99999} position='absolute'> */}
         </Mapbox.MapView>
         {status != 'active' && (
           <>
@@ -825,8 +611,11 @@ const MainScreen = () => {
             title="Vận tốc (km/h)"
             icon="IconOdometer"
             value={
-              isMoving && location?.coords.speed > 0
-                ? Math.round(location.coords.speed! * 3.6)
+              isMoving && location?.coords?.speed > 0
+                ? Math.round(
+                    (location.coords.speed! * 3.6) /
+                      location.coords.speed_accuracy,
+                  ) * location.coords.speed_accuracy
                 : 0
             }
           />
@@ -834,7 +623,7 @@ const MainScreen = () => {
             title="Phần trăm pin (%)"
             icon="IconBattery"
             value={
-              location?.battery.level
+              location && location?.battery?.level
                 ? location?.battery.level < 0
                   ? -location?.battery.level * 100
                   : Math.round(location?.battery.level * 100)
@@ -884,6 +673,12 @@ const MainScreen = () => {
           </Block>
         </Block>
       </Modal>
+      <ModalError
+        modalShow={modalShow}
+        onGetCurrentPositionAgain={onGetCurrentPositionAgain}
+        theme={theme}
+        error={error}
+      />
       <Modal
         isVisible={modalMapShow}
         backdropOpacity={0.5}
@@ -923,17 +718,23 @@ const MainScreen = () => {
             {dataMap.map((item, index) => {
               return (
                 <Block block alignItems="center" key={index}>
-                  <TouchableOpacity style={styles.onSelectMapView()}  onPress={() => {
-                    setMapURl(item.mapURl)
-                  }} >
+                  <TouchableOpacity
+                    style={styles.onSelectMapView()}
+                    onPress={() => {
+                      setMapURl(item.mapURl);
+                    }}>
                     <FastImage
                       source={item.image}
                       resizeMode="cover"
-                      style={styles.imageStyle(mapURl,item.mapURl)}
+                      style={styles.imageStyle(mapURl, item.mapURl)}
                     />
                   </TouchableOpacity>
                   <Block marginTop={8}>
-                    <Text fontSize={14} colorTheme={mapURl != item.mapURl ? 'text_primary' : 'action'}>
+                    <Text
+                      fontSize={14}
+                      colorTheme={
+                        mapURl != item.mapURl ? 'text_primary' : 'action'
+                      }>
                       {item.title}
                     </Text>
                   </Block>
@@ -1048,12 +849,13 @@ const rootStyles = (theme: AppTheme) =>
       borderWidth: 1,
       borderColor: theme.colors.action,
     } as ViewStyle,
-    imageStyle:(mapURL:string,currentURL:string) => ({
-      width: 80,
-      height: 80,
-      borderWidth: 1,
-      borderColor:  mapURL != currentURL ?  theme.colors.border : theme.colors.action,
-      borderRadius: 16,
-      
-    }) as ImageStyle,
+    imageStyle: (mapURL: string, currentURL: string) =>
+      ({
+        width: 80,
+        height: 80,
+        borderWidth: 1,
+        borderColor:
+          mapURL != currentURL ? theme.colors.border : theme.colors.action,
+        borderRadius: 16,
+      } as ImageStyle),
   });

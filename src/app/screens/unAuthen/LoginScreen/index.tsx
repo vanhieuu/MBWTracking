@@ -3,8 +3,6 @@ import {useTheme} from '@theme';
 import {loginStyle} from './style';
 import {Block, Text} from '@components';
 import isEqual from 'react-fast-compare';
-import {RouteProp, useRoute} from '@react-navigation/native';
-import {APP_SCREENS, UnAuthenParamList} from '@navigation/screen-type';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {dispatch, useSelector} from '@common';
 import {shallowEqual} from 'react-redux';
@@ -16,15 +14,20 @@ type Props = {};
 const LoginScreen = (props: Props) => {
   const theme = useTheme();
   const styles = loginStyle(theme);
-  const params =
-    useRoute<RouteProp<UnAuthenParamList, APP_SCREENS.LOGIN>>().params
-      .organizationName;
+  // const params =
+  //   useRoute<RouteProp<UnAuthenParamList, APP_SCREENS.LOGIN>>().params
+  //     .organizationName;
   const organization = useSelector(
     state => state.login.organization,
     shallowEqual,
   );
+  const isSavePassword = useSelector(
+    state => state.login.isSavePassword,
+    shallowEqual,
+  );
 
   const onConfirmData = useCallback((data: any) => {
+    dispatch(loginActions.setAutoLogin(data));
     dispatch(loginActions.postLogin(data));
   }, []);
 
@@ -32,7 +35,11 @@ const LoginScreen = (props: Props) => {
     <SafeAreaView style={styles.root} edges={['top']}>
       <Block block>
         <Block justifyContent="center" alignItems="center">
-          <Text colorTheme='text_secondary' fontSize={16}  >{params ? params : organization.result.company_name}</Text>
+          <Text colorTheme="text_secondary" fontSize={16}>
+            {organization && Object.keys(organization).length > 0
+              ? organization.company_name
+              : organization.company_name}
+          </Text>
         </Block>
         <Block marginLeft={16} marginTop={40}>
           <Text

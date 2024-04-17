@@ -6,7 +6,7 @@ import {
   View,
 } from 'react-native';
 import React, {useCallback, useRef, useState} from 'react';
-import {Block, Text, AppHeader, SvgIcon, Icon} from '@components';
+import {Block, Text, AppHeader, SvgIcon, Icon, Modal} from '@components';
 import isEqual from 'react-fast-compare';
 import {AppModule, UserInforType, dispatch, useSelector} from '@common';
 import {shallowEqual} from 'react-redux';
@@ -19,15 +19,10 @@ import HeaderAvatar from './component/HeaderAvatar';
 import {listItem} from './type';
 import Item from './component/Item';
 import {loginActions} from '@store/login-reducer/reducer';
-import {
-  LANG_LIST,
-  LanguageItemType,
-  Language_Code,
-  Organization,
-} from '@config/app.const';
+import {LANG_LIST, LanguageItemType, Language_Code} from '@config/app.const';
 import i18n from '@library/utils/i18n/i18n';
 import {useMMKVString} from 'react-native-mmkv';
-import FastImage from 'react-native-fast-image';
+
 import {useClickOutside} from 'react-native-click-outside';
 
 type Props = {};
@@ -37,6 +32,7 @@ const AccountScreen = (props: Props) => {
     state => state.app.userProfile,
     shallowEqual,
   );
+  const [show, setShow] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(false);
   const [langData, setLangData] = React.useState<LanguageItemType[]>(LANG_LIST);
   const [langCode, setLangCode] = useMMKVString(Language_Code ?? 'vi');
@@ -64,17 +60,11 @@ const AccountScreen = (props: Props) => {
   };
   const onPressLanguage = useCallback(() => {
     console.log(status);
-    if (status === 'inActive') {
-      setStatus('active');
-      startAnimation();
-    } else {
-      setStatus('inActive');
-      hideAnimation();
-    }
-  },[status,animatedValue]);
+    setShow(prev => !prev);
+  }, []);
 
   const onSelectItem = (id: string, code: string) => {
-    hideAnimation()
+    // hideAnimation();
     const newLangData = langData.map(item => {
       if (item.id === id) {
         return {...item, isSelected: true};
@@ -152,7 +142,7 @@ const AccountScreen = (props: Props) => {
   ) : (
     <SafeAreaView style={styles.root}>
       <AppHeader />
-      <Block block position='relative'>
+      <Block block position="relative">
         <HeaderAvatar userInfor={userInfor} />
         <Block
           collapsable={false}
@@ -182,20 +172,44 @@ const AccountScreen = (props: Props) => {
               colorTheme="error"
               fontSize={16}
               fontWeight="500"
-              lineHeight={24}>
+              lineHeight={24}> 
               Đăng xuất
             </Text>
           </TouchableOpacity>
         </Block>
       </Block>
-      <Animated.View
+      <Modal
+        isVisible={show}
+        backdropOpacity={0.5}
+        onBackButtonPress={() => {
+          setShow(prev => !prev);
+        }}
+        hasGesture={false}
+        onBackdropPress={() => {
+          setShow(prev => !prev);
+        }}
+        animatedIn="slideInUp"
+        animatedOut="slideOutDown">
+        <Block
+          colorTheme="white"
+          height={200}
+          borderTopLeftRadius={16}
+          borderTopRightRadius={16}
+          justifyContent="flex-start"
+          top={320}>
+          {langData.map((item, index) => {
+            return renderBottomView(item, index);
+          })}
+        </Block>
+      </Modal>
+      {/* <Animated.View
         ref={viewRef}
         collapsable={Platform.OS === 'android' && false}
         style={[styles.bottomView, {transform: [{translateY: animatedValue}]}]}>
         {langData.map((item, index) => {
           return renderBottomView(item, index);
         })}
-      </Animated.View>
+      </Animated.View> */}
     </SafeAreaView>
   );
 };

@@ -5,13 +5,14 @@ import {APP_SCREENS, UnAuthenParamList} from '@navigation/screen-type';
 import MainScreen from '@features/authen/MainScreen/MainScreen';
 import SelectOrganization from '@features/unAuthen/VerifyOrganization';
 import LoginScreen from '@features/unAuthen/LoginScreen';
+import {getState} from '@common';
 
 const Stack = createNativeStackNavigator<UnAuthenParamList>();
 
 const UnAuthenNavigation = () => {
+  let organization = getState('login').organization;
   return (
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      
       <Stack.Screen
         name={APP_SCREENS.VERIFY_ORGANIZATION}
         component={SelectOrganization}

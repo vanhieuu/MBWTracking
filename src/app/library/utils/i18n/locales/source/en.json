@@ -30,7 +30,8 @@
     "errorOnHandle": "Một lỗi xảy ra khi xử lý dữ liệu",
     "serverError": "Lỗi máy chủ",
     "errorNetwork": "Lỗi kết nối! Vui lòng kiểm tra lại kết nối.",
-    "errorGetPermission": "Lỗi trong quá trình kiểm tra quyền ứng dụng"
+    "errorGetPermission": "Lỗi trong quá trình kiểm tra quyền ứng dụng",
+    "errorLogin":"Something went wrong, please try again"
   },
   "dialog": {
     "error": "Lỗi",
@@ -40,5 +41,16 @@
     "success": "Thành công",
     "loading": "Loading",
     "select": "Chọn"
+  },
+  "title":{
+    "accountSettings":"Account Settings",
+    "enableFaceID":"Enable FaceID/TouchId",
+    "changePassword": "Change Password",
+    "notificationSettings":"Notification Settings",
+    "resetPassword":"Reset Password",
+    "currentPassword":"Current Password",
+    "newPassword":"New Password",
+    "confirmNewPassword":"Confirm New Password",
+    "confirm":"Confirm"
   }
 }

@@ -1,4 +1,4 @@
-import { MapResponse } from '@common';
+import {MapResponse} from '@common';
 import {ThemeType} from '@theme';
 
 export interface ListCity {
@@ -24,10 +24,10 @@ export interface IAppRedux {
     viewOnly?: boolean;
     status?: number;
   };
-  showModal:boolean;
+  showModal: boolean;
   theme: ThemeType;
   loadingApp?: boolean;
-  isProcessing?:boolean
+  isProcessing?: boolean;
   travelHistory?: MapResponse | any;
   currentLocation?: any;
   listDataCity: {
@@ -35,9 +35,12 @@ export interface IAppRedux {
     district: ListDistrict[];
     ward: ListWard[];
   };
-  data:any;
+  data: any;
   userProfile: any;
   automaticLocation: boolean;
+  enableBiometrics: boolean;
+  isError?: boolean;
+  isSuccess?:boolean
 }
 
 export enum SLICE_NAME {
@@ -53,6 +56,7 @@ export enum SLICE_NAME {
   POST_ORGANIZATION = 'POST_ORGANIZATION_',
   GET_USER_INFOR = 'GET_USER_INFOR_',
   GET_TRAVEL_HISTORY = 'GET_TRAVEL_HISTORY_',
+  CHANGE_PASSWORD = 'CHANGE_PASSWORD_',
 }
 
 // export const RESET_APP = 'RESET_APP_RESET_APP';
@@ -70,7 +74,11 @@ export enum SLICE_NAME {
 // export const REMOVE_ADDRESS = 'REMOVE_ADDRESS_REMOVE_ADDRESS';
 // export const SET_SEARCH_CUSTOMER_VALUE =
 //   'SET_SEARCH_CUSTOMER_VALUE_SET_SEARCH_CUSTOMER_VALUE';
-export const GET_LIST_CUSTOMER =  SLICE_NAME.GET_LIST_CUSTOMER + 'GET_LIST_CUSTOMER'
-export const POST_ORGANIZATION = SLICE_NAME.POST_ORGANIZATION  + 'POST_ORGANIZATION'
-export const GET_USER_INFOR = SLICE_NAME.GET_USER_INFOR + 'GET_USER_INFOR_'
-export const GET_TRAVEL_HISTORY = SLICE_NAME.GET_TRAVEL_HISTORY + 'GET_TRAVEL_HISTORY'
+export const GET_LIST_CUSTOMER =
+  SLICE_NAME.GET_LIST_CUSTOMER + 'GET_LIST_CUSTOMER';
+export const POST_ORGANIZATION =
+  SLICE_NAME.POST_ORGANIZATION + 'POST_ORGANIZATION';
+export const GET_USER_INFOR = SLICE_NAME.GET_USER_INFOR + 'GET_USER_INFOR_';
+export const GET_TRAVEL_HISTORY =
+  SLICE_NAME.GET_TRAVEL_HISTORY + 'GET_TRAVEL_HISTORY';
+export const CHANGE_PASSWORD = SLICE_NAME.CHANGE_PASSWORD + 'CHANGE_PASSWORD';

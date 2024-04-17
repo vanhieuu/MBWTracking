@@ -9,7 +9,7 @@ const initialAppState: IAppRedux = {
   theme: 'default',
   loadingApp: false,
   currentLocation: {},
-  travelHistory:{},
+  travelHistory: {},
   showModal: false,
   isProcessing: true,
   data: {},
@@ -20,24 +20,26 @@ const initialAppState: IAppRedux = {
   },
   userProfile: {},
   automaticLocation: false,
+  enableBiometrics: false,
+  isError: false,
+  isSuccess:false
 };
 
 const appSlice = createSlice({
   name: SLICE_NAME.APP,
   initialState: initialAppState,
   reducers: {
-    getErrorInfo: (state, {payload}: PayloadAction<any>) => {
-      state.error = payload;
-    },
+    getErrorInfo: (state, {payload}: PayloadAction<any>) =>
+      (state.error = payload),
     onSetAppTheme: (state, {payload}: PayloadAction<ThemeType>) => {
-      state.theme = payload;
+      void (state.theme = payload);
     },
     setShowModal: (state, {payload}: PayloadAction<boolean>) => {
-      state.showModal = payload;
+      void (state.showModal = payload);
     },
 
     onLoadApp: state => {
-      state.loadingApp = true;
+      void (state.loadingApp = true);
     },
     onLoadAppEnd: state => {
       state.loadingApp = false;
@@ -75,7 +77,14 @@ const appSlice = createSlice({
     },
     setDataCustomer: (state, action: PayloadAction<any>) =>
       void (state.data.dataCustomer = action.payload),
-    setTravelHistory:(state,action:PayloadAction<any>) => void(state.travelHistory = action.payload)
+    setTravelHistory: (state, action: PayloadAction<any>) =>
+      void (state.travelHistory = action.payload),
+    setBiometricsStatus: (state, action: PayloadAction<any>) =>
+      void (state.enableBiometrics = action.payload),
+    setErrorBoolean: (state, action: PayloadAction<any>) =>
+      void (state.isError = action.payload),
+    setSuccessBoolean: (state, action: PayloadAction<any>) =>
+      void (state.isSuccess = action.payload),
   },
 });
 
@@ -92,12 +101,17 @@ const getTravelHistoryAction = createAction(
   (from_time: any, to_time: any) => ({payload: {from_time, to_time}}),
 );
 
+const changePassword = createAction(Actions.CHANGE_PASSWORD, (data: any) => ({
+  payload: data,
+}));
+
 export const appActions = {
   ...appSlice.actions,
   getCustomerRouteAction,
   postOrganization,
   getUserInfor,
-  getTravelHistoryAction
+  getTravelHistoryAction,
+  changePassword
 };
 
 export const appReducer = appSlice.reducer;

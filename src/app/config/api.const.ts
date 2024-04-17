@@ -23,3 +23,4 @@ export const PUT_USER_PROFILE =
 export const GET_LIST_ROUTER_MAP_VIEW = '/api/method/mbw_dms.api.router.get_customer_router?view_mode=map'
 export const GET_USER_PROFILE =
   '/api/method/mbw_account_service.api.user.get_employee_info';
+  export const CHANGE_PASSWORD = '/api/method/mbw_dms.api.user.change_password'

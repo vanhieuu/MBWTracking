@@ -30,7 +30,7 @@ const HandlingErrorComponent: FC = () => {
           return error?.message;
       }
     } else {
-      return getLabel('someThingErr');
+      return getLabel('error:haveError');
     }
   }, [error]);
 
