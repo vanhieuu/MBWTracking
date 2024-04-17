@@ -155,13 +155,13 @@ const MainScreen = () => {
     setIsMoving(state.isMoving || false);
   };
 
-  const onLocation = () => {
-    if (!location.sample) {
-      addMarker(location);
-    } else {
-      return;
-    }
-  };
+  // const onLocation = () => {
+  //   if (!location.sample) {
+  //     addMarker(location);
+  //   } else {
+  //     return;
+  //   }
+  // };
 
   const addMarker = (location: Location | any) => {
     setLocation(location);
@@ -289,10 +289,10 @@ const MainScreen = () => {
     );
   };
 
-  React.useEffect(() => {
-    if (!location) return;
-    onLocation();
-  }, [location?.coords]);
+  // React.useEffect(() => {
+  //   if (!location) return;
+  //   onLocation();
+  // }, [location?.coords]);
 
   // console.log(location,'motionChangeEvent');
 
@@ -449,6 +449,7 @@ const MainScreen = () => {
   const onUpdateLocation = useCallback(
     (location: RNLocation) => {
       console.log(location, 'location update');
+      addMarker(location)
       setLocation(location);
       setOdometer(location.coords.speed);
       mapboxCameraRef.current?.flyTo(
