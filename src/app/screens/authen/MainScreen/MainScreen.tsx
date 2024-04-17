@@ -10,18 +10,25 @@ import {
   ViewStyle,
 } from 'react-native';
 import React, {useCallback, useLayoutEffect, useRef} from 'react';
-import {Text, Block, FAB, SvgIcon, Modal, Icon} from '@components';
+import {Text, Block, FAB, SvgIcon} from '@components';
 import Mapbox, {UserTrackingMode, Location as RNLocation} from '@rnmapbox/maps';
 import {MAP_TITLE_URL} from '@config/app.const';
 import {AppTheme, useTheme} from '@theme';
 import BackgroundGeolocation, {
-  Geofence,
   Location,
   LocationError,
   State,
 } from 'react-native-background-geolocation';
 import {API_EK_KEY, BASE_URL_MAP} from '@config/createApi';
-import {AppModule, formatTime, useSelector, useTimer} from '@common';
+import {
+  AppModule,
+  dispatch,
+  formatTime,
+  height,
+  useSelector,
+  useTimer,
+  width,
+} from '@common';
 import {shallowEqual} from 'react-redux';
 import BackgroundFetch from 'react-native-background-fetch';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -34,6 +41,8 @@ import {postLastLocation} from '@store/api';
 import FastImage, {ImageStyle} from 'react-native-fast-image';
 import {dataMap} from './ultil';
 import ModalError from './components/ModalError';
+import {appActions} from '@store/app-reducer/reducer';
+import Modal from 'react-native-modal';
 
 const MainScreen = () => {
   const theme = useTheme();
@@ -61,6 +70,7 @@ const MainScreen = () => {
     state => state.login.loginResponse,
     shallowEqual,
   );
+  console.log(Object.values(loginState.key_details), '?');
   // console.log(loginState.key_details.project_id)
 
   const {elapsedTime, isRunning, toggleTimer} = useTimer();
@@ -86,7 +96,7 @@ const MainScreen = () => {
     } else {
       return;
     }
-  }, [location,list]);
+  }, [location, list]);
 
   const onDiscloseBackgroundPermission = () => {
     AppModule.storage.set(
@@ -129,8 +139,7 @@ const MainScreen = () => {
       stopTimeout: 5,
       locationAuthorizationRequest: 'Always',
       backgroundPermissionRationale: {
-        title:
-          'Cho phép MBWTracking truy cập vào vị trí kể cả khi không sử dụng',
+        title: 'Cho phép MBWTrack truy cập vào vị trí kể cả khi không sử dụng',
         message:
           'Ứng dụng này thu thập dữ liệu vị trí để cho phép ghi lại chuyến đi làm của bạn và tính toán khoảng cách di chuyển',
         positiveAction: 'Cho phép cấp quyền',
@@ -169,11 +178,7 @@ const MainScreen = () => {
       ...previous,
       [location.coords.longitude, location.coords.latitude],
     ]);
-    mapboxCameraRef.current?.moveTo(
-      [location?.coords?.longitude, location?.coords?.latitude],
-      500,
-    );
-    mapboxCameraRef.current?.zoomTo(18, 200);
+    
   };
 
   // console.log(list,'listMarker')
@@ -259,16 +264,15 @@ const MainScreen = () => {
 
   const onStopTracking = useCallback(async () => {
     location.extras!.endTime = new Date().toISOString();
+    dispatch(appActions.setTravelHistory([...list]));
     await postLastLocation(location);
   }, [location]);
-
   const initBackgroundFetch = async () => {
     BackgroundFetch.configure(
       {
         minimumFetchInterval: 15,
         enableHeadless: true,
         stopOnTerminate: false,
-        
       },
       async taskId => {
         const location = await BackgroundGeolocation.getCurrentPosition({
@@ -319,7 +323,7 @@ const MainScreen = () => {
       },
     })
       .then((location: Location) => {
-        console.log(location , 'get current ? ')
+        console.log(location, 'get current ? ');
         setLocation(location);
         mapboxCameraRef.current?.flyTo(
           [location.coords.longitude, location.coords.latitude],
@@ -367,7 +371,6 @@ const MainScreen = () => {
 
   // console.log(sortedData(dataCustomer),'sorted Data')
   // console.log(coordinates,'coordinates')
-
 
   const startAnimation = useCallback(() => {
     Animated.timing(animatedValue, {
@@ -418,15 +421,13 @@ const MainScreen = () => {
 
   const onUpdateLocation = useCallback(
     (location: RNLocation) => {
-      console.log(location, 'location update');
-      addMarker(location)
+      addMarker(location);
       setLocation(location);
-      setOdometer(location.coords.speed);
-      mapboxCameraRef.current?.flyTo(
-        [location.coords.longitude, location.coords.latitude],
+      mapboxCameraRef.current?.moveTo(
+        [location?.coords?.longitude, location?.coords?.latitude],
         500,
       );
-      mapboxCameraRef.current?.zoomTo(18,500)
+      mapboxCameraRef.current?.zoomTo(18, 200);
     },
     [list],
   );
@@ -543,11 +544,8 @@ const MainScreen = () => {
             title="Vận tốc (km/h)"
             icon="IconOdometer"
             value={
-              isMoving && location?.coords?.speed > 0
-                ? Math.round(
-                    (location.coords.speed! * 3.6) /
-                      location.coords.speed_accuracy,
-                  ) * location.coords.speed_accuracy
+              location?.coords?.speed > 0
+                ? Math.round(location.coords.speed! * 3.6)
                 : 0
             }
           />
@@ -564,47 +562,6 @@ const MainScreen = () => {
           />
         </Block>
       </Animated.View>
-      <Modal
-        isVisible={modalShow}
-        backdropOpacity={0.5}
-        onBackButtonPress={() => {}}
-        onBackdropPress={() => {}}
-        animatedIn="slideInUp"
-        animatedOut="slideOutDown">
-        <Block
-          colorTheme="bg_default"
-          height={230}
-          marginLeft={16}
-          marginRight={16}
-          borderRadius={16}>
-          <Block justifyContent="center" alignItems="center" marginTop={8}>
-            <Icon icon="ErrorApiIcon" size={100} />
-          </Block>
-          <Block justifyContent="center" paddingVertical={8}>
-            <Text
-              textAlign="center"
-              fontSize={16}
-              fontWeight="500"
-              lineHeight={27}
-              colorTheme="text_primary">
-              {error}
-            </Text>
-          </Block>
-          <Block
-            paddingHorizontal={16}
-            justifyContent="center"
-            alignItems="center"
-            direction="row">
-            <TouchableOpacity
-              style={styles.buttonModal}
-              onPress={onGetCurrentPositionAgain}>
-              <Text colorTheme="white" fontSize={16} fontWeight="500">
-                Thử lại
-              </Text>
-            </TouchableOpacity>
-          </Block>
-        </Block>
-      </Modal>
       <ModalError
         modalShow={modalShow}
         onGetCurrentPositionAgain={onGetCurrentPositionAgain}
@@ -615,13 +572,13 @@ const MainScreen = () => {
         isVisible={modalMapShow}
         backdropOpacity={0.5}
         onBackButtonPress={() => setModalMapShow(false)}
-        hasGesture={false}
         onBackdropPress={() => setModalMapShow(false)}
-        animatedIn="slideInUp"
-        animatedOut="slideOutDown">
+        style={{marginHorizontal: 0}}
+        animationIn="slideInUp"
+        animationOut="slideOutDown">
         <Block
           colorTheme="white"
-          height={200}
+          height={height / 3}
           borderTopLeftRadius={16}
           borderTopRightRadius={16}
           justifyContent="flex-start"

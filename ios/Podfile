@@ -25,7 +25,7 @@ if linkage != nil
   use_frameworks! :linkage => linkage.to_sym
 end
 
-target 'MBWTracking' do
+target 'MBWTrack' do
   config = use_native_modules!
 
   # Flags change depending on the env values.
@@ -45,7 +45,7 @@ target 'MBWTracking' do
     :app_path => "#{Pod::Config.instance.installation_root}/.."
   )
 
-  target 'MBWTrackingTests' do
+  target 'MBWTrackTests' do
     inherit! :complete
     # Pods for testing
   end

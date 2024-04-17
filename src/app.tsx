@@ -30,11 +30,11 @@ export const MyApp = () => {
         <Provider store={store}>
           <I18nextProvider i18n={I18n}>
             <Suspense fallback={null}>
-              <PortalProvider>
-                <ClickOutsideProvider>
+              <ClickOutsideProvider>
+                <PortalProvider>
                   <AppNavigator />
-                </ClickOutsideProvider>
-              </PortalProvider>
+                </PortalProvider>
+              </ClickOutsideProvider>
             </Suspense>
           </I18nextProvider>
         </Provider>

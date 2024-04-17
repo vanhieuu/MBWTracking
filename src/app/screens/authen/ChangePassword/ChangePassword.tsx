@@ -4,14 +4,14 @@ import isEqual from 'react-fast-compare';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useTheme} from '@theme';
 import {rootStyle} from './styles';
-import {AppHeader, Block, Icon, Modal, Text} from '@components';
+import {AppHeader, Block, Icon, Text} from '@components';
 import {translate} from '@utils';
 import FormChangePass from './component/FormChangePass';
 import {dispatch, useDisableBackHandler, useSelector} from '@common';
 import {appActions} from '@store/app-reducer/reducer';
 import {shallowEqual} from 'react-redux';
 import { goBack } from '@navigation/navigation-service';
-
+import Modal from 'react-native-modal'
 const ChangePassword = () => {
   const theme = useTheme();
   const styles = rootStyle(theme);
@@ -41,9 +41,9 @@ const ChangePassword = () => {
       </Block>
       <Modal
         isVisible={success!}
-        animatedIn="slideInUp"
-        animatedOut="slideOutDown"
-        hasGesture={false}
+        animationIn="slideInUp"
+        animationOut="slideOutDown"
+      
         onBackButtonPress={onBackButtonAndDrop}
         onBackdropPress={onBackButtonAndDrop}
         backdropOpacity={0.5}>

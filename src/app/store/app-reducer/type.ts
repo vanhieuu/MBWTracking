@@ -30,11 +30,6 @@ export interface IAppRedux {
   isProcessing?: boolean;
   travelHistory?: MapResponse | any;
   currentLocation?: any;
-  listDataCity: {
-    city: ListCity[];
-    district: ListDistrict[];
-    ward: ListWard[];
-  };
   data: any;
   userProfile: any;
   automaticLocation: boolean;

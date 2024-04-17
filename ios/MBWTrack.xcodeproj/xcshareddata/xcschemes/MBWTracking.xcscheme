@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "MBWTracking.app"
-               BlueprintName = "MBWTracking"
-               ReferencedContainer = "container:MBWTracking.xcodeproj">
+               BuildableName = "MBWTrack.app"
+               BlueprintName = "MBWTrack"
+               ReferencedContainer = "container:MBWTrack.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "MBWTrackingTests.xctest"
-               BlueprintName = "MBWTrackingTests"
-               ReferencedContainer = "container:MBWTracking.xcodeproj">
+               BuildableName = "MBWTrackTests.xctest"
+               BlueprintName = "MBWTrackTests"
+               ReferencedContainer = "container:MBWTrack.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "MBWTracking.app"
-            BlueprintName = "MBWTracking"
-            ReferencedContainer = "container:MBWTracking.xcodeproj">
+            BuildableName = "MBWTrack.app"
+            BlueprintName = "MBWTrack"
+            ReferencedContainer = "container:MBWTrack.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "MBWTracking.app"
-            BlueprintName = "MBWTracking"
-            ReferencedContainer = "container:MBWTracking.xcodeproj">
+            BuildableName = "MBWTrack.app"
+            BlueprintName = "MBWTrack"
+            ReferencedContainer = "container:MBWTrack.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

@@ -28,6 +28,7 @@ const TravelHistory = () => {
     shallowEqual,
   );
 
+  console.log(listTravelHistory,'history')
   useDeepCompareEffect(() => {
     const startOfDay = currentDate.current;
 
@@ -49,9 +50,9 @@ const TravelHistory = () => {
     )}T23:59:59`;
 
     setLoading(true);
-    dispatch(
-      appActions.getTravelHistoryAction(startOfDayString, endOfDayString),
-    );
+    // dispatch(
+    //   appActions.getTravelHistoryAction(startOfDayString, endOfDayString),
+    // );
     setLoading(false);
     return () => {
       setLoading(false);

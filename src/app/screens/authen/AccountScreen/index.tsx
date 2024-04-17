@@ -1,14 +1,8 @@
-import {
-  Animated,
-  Dimensions,
-  Platform,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Animated, Dimensions, TouchableOpacity, View} from 'react-native';
 import React, {useCallback, useRef, useState} from 'react';
-import {Block, Text, AppHeader, SvgIcon, Icon, Modal} from '@components';
+import {Block, Text, AppHeader, Icon} from '@components';
 import isEqual from 'react-fast-compare';
-import {AppModule, UserInforType, dispatch, useSelector} from '@common';
+import {UserInforType, dispatch, useSelector} from '@common';
 import {shallowEqual} from 'react-redux';
 import {appActions} from '@store/app-reducer/reducer';
 import {ActivityIndicator} from 'react-native-paper';
@@ -22,7 +16,7 @@ import {loginActions} from '@store/login-reducer/reducer';
 import {LANG_LIST, LanguageItemType, Language_Code} from '@config/app.const';
 import i18n from '@library/utils/i18n/i18n';
 import {useMMKVString} from 'react-native-mmkv';
-
+import Modal from 'react-native-modal';
 import {useClickOutside} from 'react-native-click-outside';
 
 type Props = {};
@@ -142,7 +136,7 @@ const AccountScreen = (props: Props) => {
   ) : (
     <SafeAreaView style={styles.root}>
       <AppHeader />
-      <Block block position="relative">
+      <Block block>
         <HeaderAvatar userInfor={userInfor} />
         <Block
           collapsable={false}
@@ -172,7 +166,7 @@ const AccountScreen = (props: Props) => {
               colorTheme="error"
               fontSize={16}
               fontWeight="500"
-              lineHeight={24}> 
+              lineHeight={24}>
               Đăng xuất
             </Text>
           </TouchableOpacity>
@@ -184,12 +178,12 @@ const AccountScreen = (props: Props) => {
         onBackButtonPress={() => {
           setShow(prev => !prev);
         }}
-        hasGesture={false}
+        style={{marginHorizontal:0}}
         onBackdropPress={() => {
           setShow(prev => !prev);
         }}
-        animatedIn="slideInUp"
-        animatedOut="slideOutDown">
+        animationIn="slideInUp"
+        animationOut="slideOutDown">
         <Block
           colorTheme="white"
           height={200}

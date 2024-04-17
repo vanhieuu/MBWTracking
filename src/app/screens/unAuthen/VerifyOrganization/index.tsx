@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect} from 'react';
-import {Block, Icon, LangItem, Modal, Text, showSnack} from '@components';
+import {Block, Icon, LangItem, Text, showSnack} from '@components';
 import {useTheme} from '@theme';
 import {rootStyles} from './style';
 
@@ -20,6 +20,7 @@ import {loginActions} from '@store/login-reducer/reducer';
 import {STT_OK} from '@config/api.const';
 import {TouchableOpacity} from 'react-native';
 import i18n from '@library/utils/i18n/i18n';
+import Modal from 'react-native-modal';
 // import {dispatch} from '@common';
 
 type Props = {};
@@ -144,12 +145,12 @@ const SelectOrganization = () => {
         onBackButtonPress={() => {
           setShow(prev => !prev);
         }}
-        hasGesture={false}
+        style={{marginHorizontal: 0}}
         onBackdropPress={() => {
           setShow(prev => !prev);
         }}
-        animatedIn="slideInUp"
-        animatedOut="slideOutDown">
+        animationIn="slideInUp"
+        animationOut="slideOutDown">
         <Block
           colorTheme="white"
           height={200}

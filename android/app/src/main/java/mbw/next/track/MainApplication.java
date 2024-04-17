@@ -1,4 +1,4 @@
-package mbw.next.tracking;
+package mbw.next.track;
 
 import android.app.Application;
 import com.facebook.react.PackageList;

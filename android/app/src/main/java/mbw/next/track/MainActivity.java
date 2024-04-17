@@ -1,4 +1,4 @@
-package mbw.next.tracking;
+package mbw.next.track;
 
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactActivityDelegate;
@@ -13,7 +13,7 @@ public class MainActivity extends ReactActivity {
    */
   @Override
   protected String getMainComponentName() {
-    return "MBWTracking";
+    return "MBWTrack";
   }
 
   /**

@@ -87,7 +87,9 @@ const createInstance = (deleteHeader?: boolean) => {
 };
 
 Api.addResponseTransform(response => {
-  console.log(response.config?.url, 'dcm');
+  console.log(response.config?.url, 'url');
+  console.log(response,'response')
+  console.log(response.config?.baseURL,'baseURL')
   handleErrorResponse(response, true);
 });
 export const createApi = (deleteHeader?: boolean) =>

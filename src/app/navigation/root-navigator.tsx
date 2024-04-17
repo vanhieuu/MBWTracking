@@ -7,6 +7,7 @@ import UnAuthenNavigation from './unAuthenNavigator';
 import {getState} from '../common/redux';
 import {useSelector} from '../common/hooks';
 import {shallowEqual} from 'react-redux';
+import {SafeAreaProvider} from 'react-native-safe-area-context';
 
 const Stack = createNativeStackNavigator<RootStackParamsList>();
 
@@ -16,23 +17,29 @@ const RootNavigator = () => {
     state => state.login.loginResponse,
     shallowEqual,
   );
-  // console.log(state,'state')
+  const isNotEmpty = Object.values(loginState.key_details).some(value => value !== '');
+
+  console.log(loginState,'state')
   return (
-    <Stack.Navigator screenOptions={{headerShown: false}}>
-      {loginState &&
-      Object.keys(loginState) &&
-      Object.keys(loginState).length > 0 ? (
-        <Stack.Screen
-          name={APP_SCREENS.AUTHORIZED}
-          component={AuthenNavigator}
-        />
-      ) : (
-        <Stack.Screen
-          name={APP_SCREENS.UN_AUTHORIZED}
-          component={UnAuthenNavigation}
-        />
-      )}
-    </Stack.Navigator>
+    <SafeAreaProvider>
+      <Stack.Navigator screenOptions={{headerShown: false}}>
+        {loginState.key_details &&
+        Object.keys(loginState.key_details) &&
+        isNotEmpty ? (
+          <Stack.Screen
+            name={APP_SCREENS.AUTHORIZED}
+            component={AuthenNavigator}
+            options={{gestureEnabled: false, headerShown: false}}
+          />
+        ) : (
+          <Stack.Screen
+            name={APP_SCREENS.UN_AUTHORIZED}
+            component={UnAuthenNavigation}
+            options={{gestureEnabled: false, headerShown: false}}
+          />
+        )}
+      </Stack.Navigator>
+    </SafeAreaProvider>
   );
 };
 

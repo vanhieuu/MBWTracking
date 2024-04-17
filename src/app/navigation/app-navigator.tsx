@@ -17,7 +17,7 @@ Mapbox.setAccessToken(MAPBOX_TOKEN);
 
 export const AppNavigator = () => {
   const theme = useSelector(state => state.app.theme, shallowEqual);
-  
+
   const handleAppStateChange = useCallback((nextState: AppStateStatus) => {
     if (nextState === 'active') {
       console.log('App has come to the foreground');
@@ -36,13 +36,11 @@ export const AppNavigator = () => {
 
   return (
     <NavigationContainer ref={navigationRef} theme={MyAppTheme[theme]}>
-      <>
-        <PortalHost name={'AppModal'} />
-        <RootNavigator />
-        <SnackBar />
-        <HandlingError />
-        <RXStore/>
-      </>
+      <PortalHost name={'AppModal'} />
+      <RootNavigator />
+      <SnackBar />
+      <HandlingError />
+      <RXStore />
     </NavigationContainer>
   );
 };

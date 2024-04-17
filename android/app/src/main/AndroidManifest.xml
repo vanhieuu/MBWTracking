@@ -11,7 +11,7 @@
       android:roundIcon="@mipmap/ic_launcher_round"
       android:allowBackup="false"
       android:theme="@style/AppTheme">
-       <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="ceae477074d8959fa9a0f36bec778aee9ed8393c302acbf6ec07cbbd1f60e9b9" />
+       <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="1983f3f4dad646d15d82f599f97525f5afd7b0b68120df8ca0d966e72dd67502" />
       <activity
         android:name=".MainActivity"
         android:label="@string/app_name"

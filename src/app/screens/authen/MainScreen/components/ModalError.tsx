@@ -1,9 +1,9 @@
 import {StyleSheet, TouchableOpacity, ViewStyle} from 'react-native';
 import React from 'react';
 import isEqual from 'react-fast-compare';
-import {Block, Icon, Modal, Text} from '@components';
+import {Block, Icon,  Text} from '@components';
 import {AppTheme} from '@theme';
-
+import Modal from 'react-native-modal'
 type Props = {
   modalShow: boolean;
   onGetCurrentPositionAgain: () => void;
@@ -24,9 +24,10 @@ const ModalError = ({
       isVisible={modalShow}
       backdropOpacity={0.5}
       onBackButtonPress={() => {}}
+      style={{marginHorizontal:0}}
       onBackdropPress={() => {}}
-      animatedIn="slideInUp"
-      animatedOut="slideOutDown">
+      animationIn="slideInUp"
+      animationOut="slideOutDown">
       <Block
         colorTheme="bg_default"
         height={230}

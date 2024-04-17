@@ -13,11 +13,7 @@ const initialAppState: IAppRedux = {
   showModal: false,
   isProcessing: true,
   data: {},
-  listDataCity: {
-    city: [],
-    district: [],
-    ward: [],
-  },
+  
   userProfile: {},
   automaticLocation: false,
   enableBiometrics: false,
@@ -58,15 +54,7 @@ const appSlice = createSlice({
       state.error = action.payload;
     },
 
-    setDataCity: (state, action: PayloadAction<any>) => {
-      state.listDataCity.city = action.payload;
-    },
-    setDataDistrict: (state, action: PayloadAction<any>) => {
-      state.listDataCity.district = action.payload;
-    },
-    setDataWard: (state, action: PayloadAction<any>) => {
-      state.listDataCity.ward = action.payload;
-    },
+   
 
     setUserProfile: (state, action: PayloadAction<any>) => {
       state.userProfile = action.payload;

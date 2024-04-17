@@ -103,14 +103,21 @@ export function* onChangePassword(action: PayloadAction) {
         changePassword,
         action.payload,
       );
-      console.log(response,'response')
+      console.log(response, 'response');
       if (response.status == true) {
         yield put(appActions.setSuccessBoolean(true));
         // goBack();
       } else {
+        yield put(
+          setError({
+            title: '',
+            message: response.message,
+            viewOnly: true,
+          }),
+        );
         yield put(appActions.setErrorBoolean(true));
         showSnack({
-          msg: translate('error:errorOnRequest') as string,
+          msg: response.message as string,
           interval: 2000,
           type: 'error',
         });

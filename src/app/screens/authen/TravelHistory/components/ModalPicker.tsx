@@ -1,12 +1,12 @@
 import {StyleSheet} from 'react-native';
 import React from 'react';
-import {Block, Modal} from '@components';
+import {Block} from '@components';
 import {HeaderPicker} from './HeaderPicker';
 import DatePicker from 'react-native-date-picker';
 import {width} from '@common';
 import {useMMKVString} from 'react-native-mmkv';
 import {Language_Code} from '@config/app.const';
-
+import Modal from 'react-native-modal'
 type Props = {
   showPicker: boolean;
   setShowPicker: React.Dispatch<React.SetStateAction<boolean>>;
@@ -29,9 +29,10 @@ const ModalPicker = (props: Props) => {
       backdropOpacity={0.5}
       onBackButtonPress={onCancelPicker}
       onBackdropPress={onCancelPicker}
-      animatedIn="slideInUp"
-      animatedOut="slideOutDown"
-      hasGesture={false}>
+      animationIn="slideInUp"
+      animationOut="slideOutDown"
+      style={{marginHorizontal:0}}
+     >
       <Block
         colorTheme="white"
         height={400}
