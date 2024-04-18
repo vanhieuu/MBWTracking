@@ -178,7 +178,6 @@ const MainScreen = () => {
       ...previous,
       [location.coords.longitude, location.coords.latitude],
     ]);
-    
   };
 
   // console.log(list,'listMarker')
@@ -325,9 +324,10 @@ const MainScreen = () => {
       .then((location: Location) => {
         console.log(location, 'get current ? ');
         setLocation(location);
+
         mapboxCameraRef.current?.flyTo(
           [location.coords.longitude, location.coords.latitude],
-          1000,
+          200,
         );
       })
       .catch((error: LocationError) => {
@@ -423,13 +423,14 @@ const MainScreen = () => {
     (location: RNLocation) => {
       addMarker(location);
       setLocation(location);
+      mapboxCameraRef.current?.setCamera({centerCoordinate:[location.coords.longitude,location.coords.latitude]})
       mapboxCameraRef.current?.moveTo(
         [location?.coords?.longitude, location?.coords?.latitude],
         500,
       );
       mapboxCameraRef.current?.zoomTo(18, 200);
     },
-    [list],
+    [location],
   );
 
   return (
@@ -453,16 +454,16 @@ const MainScreen = () => {
           attributionEnabled={false}
           scaleBarEnabled={false}
           zoomEnabled
+          onDidFinishLoadingMap={onClickGetCurrentPosition}
           scrollEnabled
           logoEnabled={false}
           styleURL={mapURl}
           style={styles.mapView}>
           <Mapbox.Camera
             ref={mapboxCameraRef}
-            // triggerKey={list.length}
-            // followUserLocation
             animationMode={'flyTo'}
             followUserMode={UserTrackingMode.Follow}
+            followPitch={40}
             animationDuration={500}
             zoomLevel={18}
           />
@@ -473,6 +474,7 @@ const MainScreen = () => {
             minDisplacement={5}
             onUpdate={onUpdateLocation}
             showsUserHeadingIndicator={true}
+            requestsAlwaysUse={true}
           />
           {/* <Poly */}
 
