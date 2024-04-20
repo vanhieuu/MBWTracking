@@ -19,6 +19,7 @@ const AppInputComponent: FC<AppInputProps> = ({
   editable,
   hiddenRightIcon,
   onPress,
+  defaultValue,
   isRequire = false,
   labelStyle,
   contentStyle,
@@ -80,6 +81,7 @@ const AppInputComponent: FC<AppInputProps> = ({
           ) : null
         }
         editable={editable}
+        defaultValue={defaultValue}
         disabled={disable}
         secureTextEntry={isPassword && !showPassword}
         clearTextOnFocus={isPassword}

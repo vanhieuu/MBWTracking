@@ -44,12 +44,14 @@ const FormLoginComponents = (props: Props) => {
         styles={{marginVertical: 20}}
         label="Tên đăng nhập"
         value={value.usr}
+        defaultValue='Ngocsondds@gmail.com'
         onChangeValue={text => setValue(prev => ({...prev, usr: text}))}
       />
       <AppInput
         styles={{marginVertical: 20}}
         label="Mật khẩu"
         value={value.pwd}
+        defaultValue='Abc@123'
         isPassword={true}
         onChangeValue={text => setValue(prev => ({...prev, pwd: text}))}
       />

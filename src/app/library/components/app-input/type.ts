@@ -18,6 +18,7 @@ export interface AppInputPropsBase {
     isRequire?: boolean;
     labelStyle?: TextStyle;
     contentStyle?: TextStyle;
+    defaultValue?:string
   }
  type AppInputPropsEditable = {
     editable?: true;

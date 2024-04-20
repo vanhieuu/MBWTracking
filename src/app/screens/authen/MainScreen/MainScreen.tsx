@@ -25,6 +25,7 @@ import {
   dispatch,
   formatTime,
   height,
+  useEffectOnce,
   useSelector,
   useTimer,
 } from '@common';
@@ -46,7 +47,8 @@ import Modal from 'react-native-modal';
 const MainScreen = () => {
   const theme = useTheme();
   const mapboxCameraRef = useRef<Mapbox.Camera>(null);
-  // const userLocationRef = useRef<Mapbox.UserLocation>()
+  const userLocationRef = useRef<Mapbox.UserLocation>(null);
+
   const styles = rootStyles(theme);
 
   //Locations
@@ -95,9 +97,7 @@ const MainScreen = () => {
     );
   };
 
-  React.useEffect(() => {
-    // Register BackgroundGeolocation event-listeners.
-
+  useEffectOnce(() => {
     BackgroundGeolocation.getState().then((state: State) => {
       setEnabled(state.enabled);
     });
@@ -126,11 +126,11 @@ const MainScreen = () => {
       // Remove BackgroundGeolocation event-listeners.
       locationSubscriber.remove();
       motionChangeSubscriber.remove();
-      clearMarkers();
       notificationActionSubscriber.remove();
     };
-  }, []);
-  useLayoutEffect(() => {
+  });
+
+  React.useEffect(() => {
     if (Platform.OS === 'android' && !hasDisclosedBackgroundPermission) {
       // For Google Play Console Submission:  "disclosure for background permission".
       // This is just a simple one-time Alert.  This is your own responsibility to do this.
@@ -143,9 +143,7 @@ const MainScreen = () => {
         [
           {
             text: 'Đóng',
-            onPress: () => {
-              onDiscloseBackgroundPermission();
-            },
+            onPress: () => onDiscloseBackgroundPermission(),
           },
         ],
       );
@@ -189,28 +187,12 @@ const MainScreen = () => {
     setIsMoving(state.isMoving || false);
   };
 
-  // const onLocation = () => {
-  //   if (!location.sample) {
-  //     addMarker(location);
-  //   } else {
-  //     return;
-  //   }
-  // };
-
   const addMarker = (location: Location | any) => {
-    setLocation(location);
-
     setList(previous => [
       ...previous,
       [location.coords.longitude, location.coords.latitude],
     ]);
   };
-
-  // console.log(list,'listMarker')
-
-  // useDeepCompareEffect(() => {}, [locations.current]);
-
-  // console.log(motionChangeEvent,'motionChangeEvent')
 
   const backgroundErrorListener = useCallback(
     (errorCode: number) => {
@@ -248,6 +230,7 @@ const MainScreen = () => {
   const onStartTracking = async () => {
     location.extras!.startTime = new Date().toISOString();
     await postLastLocation(location);
+    userLocationRef.current?.setLocationManager({running: true});
     onClickGetCurrentPosition();
   };
 
@@ -291,19 +274,20 @@ const MainScreen = () => {
       if (state.trackingMode == 1) {
         BackgroundGeolocation.start();
         // onClickGetCurrentPosition();
-        setIsMoving(true);
-        setShowUserLocation(true);
+        setIsMoving(value);
+        setShowUserLocation(value);
         // dispatch(appActions.getCustomerRouteAction());
       } else {
         BackgroundGeolocation.startGeofences();
       }
     } else {
       BackgroundGeolocation.stop();
-      setShowUserLocation(false);
+      setShowUserLocation(value);
       // Toggle the [ > ] / [ || ] button in bottom-toolbar back to [ > ]
-      setIsMoving(false);
+      setIsMoving(value);
     }
   };
+  // console.log(userLocationRef.current?.state.coordinates,'coo')
 
   const onClickGetCurrentPosition = useCallback(async () => {
     await BackgroundGeolocation.getCurrentPosition({
@@ -316,6 +300,7 @@ const MainScreen = () => {
       },
     })
       .then((location: Location) => {
+        setLocation(location);
         setBatteryLevel(
           location.battery.level > 0
             ? location.battery.level
@@ -325,6 +310,7 @@ const MainScreen = () => {
           [location.coords.longitude, location.coords.latitude],
           100,
         );
+        onUpdateLocation(location);
         setTimeout(() => {
           mapboxCameraRef.current?.zoomTo(18, 500);
         }, 1000);
@@ -347,6 +333,7 @@ const MainScreen = () => {
     setModalShow(false);
     onClickGetCurrentPosition();
   };
+  // console.log(list, 'list');
 
   React.useEffect(() => {
     BackgroundGeolocation.getCurrentPosition({
@@ -370,9 +357,6 @@ const MainScreen = () => {
       });
   }, [enabled]);
 
-  // console.log(sortedData(dataCustomer),'sorted Data')
-  // console.log(coordinates,'coordinates')
-
   const startAnimation = useCallback(() => {
     Animated.timing(animatedValue, {
       toValue:
@@ -392,49 +376,58 @@ const MainScreen = () => {
     }).start();
   }, [status]);
 
-  const onPressStart = () => {
+  const onPressStart = async () => {
     if (status === 'active') {
-      setStatus('inActive');
-      startAnimation();
-      toggleTimer();
-      // BackgroundGeolocation.start();
-      onStartTracking();
-      setIsMoving(true);
       BackgroundGeolocation.changePace(true);
-      // onClickGetCurrentPosition()
+      onStartTracking();
       onClickEnable(true);
+      setStatus('inActive');
+      toggleTimer();
+      startAnimation();
     } else {
-      setStatus('active');
+      BackgroundGeolocation.changePace(false);
+      onClickEnable(false);
+      onStopTracking();
       setList([]);
+      setStatus('active');
       hideAnimated();
       toggleTimer();
-      onStopTracking();
-      onClickEnable(false);
-      BackgroundGeolocation.changePace(false);
-      setIsMoving(false);
     }
   };
 
   // console.log(location.coords,'list')
-  const clearMarkers = () => {
-    setList([]);
-  };
 
-  const onUpdateLocation = useCallback(
-    (location: RNLocation) => {
-      addMarker(location);
-      setLocation(location);
-      mapboxCameraRef.current?.setCamera({
-        centerCoordinate: [location.coords.longitude, location.coords.latitude],
-      });
-      mapboxCameraRef.current?.moveTo(
-        [location.coords.longitude, location.coords.latitude],
-        100,
-      );
-      // onClickGetCurrentPosition();
-    },
-    [location],
-  );
+  const renderMarker = useCallback(() => {
+    return (
+      <>
+        {list &&
+          list.length > 0 &&
+          list.map((marker, index) => {
+            return (
+              <Mapbox.PointAnnotation
+                id={index.toString()}
+                key={index.toString()}
+                coordinate={marker}>
+                <MarkerItem index={index} />
+              </Mapbox.PointAnnotation>
+            );
+          })}
+      </>
+    );
+  }, [list.length]);
+
+  const onUpdateLocation = (location: RNLocation | any) => {
+    addMarker(location);
+    setLocation(location);
+    mapboxCameraRef.current?.setCamera({
+      centerCoordinate: [location.coords.longitude, location.coords.latitude],
+    });
+    mapboxCameraRef.current?.moveTo(
+      [location.coords.longitude, location.coords.latitude],
+      100,
+    );
+    // onClickGetCurrentPosition();
+  };
 
   return (
     <SafeAreaView style={styles.root} edges={['bottom']}>
@@ -458,45 +451,58 @@ const MainScreen = () => {
           scaleBarEnabled={false}
           zoomEnabled
           onDidFinishLoadingMap={() => {
-            mapboxCameraRef.current?.moveTo([
-              location?.coords?.longitude,
-              location?.coords?.latitude,
-            ]);
+            location && location != null
+              ? mapboxCameraRef.current?.moveTo([
+                  location?.coords?.longitude,
+                  location?.coords?.latitude,
+                ])
+              : console.log('success');
           }}
           scrollEnabled
           logoEnabled={false}
           styleURL={mapURl}
           style={styles.mapView}>
-          <Mapbox.UserLocation
-            visible={showUserLocation}
-            animated
-            androidRenderMode="gps"
-            minDisplacement={10}
-            onUpdate={onUpdateLocation}
-            showsUserHeadingIndicator={true}
-            requestsAlwaysUse={true}
-          />
           {location != null && (
-            <Mapbox.LocationPuck
-              visible={true}
-              puckBearingEnabled={true}
-              pulsing={{
-                isEnabled: true,
-                color: theme.colors.action,
-                radius: 40,
-              }}
-            />
+            <>
+              <Mapbox.UserLocation
+                visible={showUserLocation}
+                animated={true}
+                ref={userLocationRef}
+                androidRenderMode="gps"
+                minDisplacement={10}
+                onUpdate={onUpdateLocation}
+                showsUserHeadingIndicator={showUserLocation}
+                requestsAlwaysUse={true}
+              />
+              <Mapbox.LocationPuck
+                visible={true}
+                puckBearing="course"
+                puckBearingEnabled={true}
+                pulsing={{
+                  isEnabled: true,
+                  color: theme.colors.action,
+                  radius: 40,
+                }}
+              />
+            </>
           )}
+          {renderMarker()}
+
+          {/* {list &&
+            list.length > 0 &&
+            list.map((marker, index) => {
+              return (
+                <Mapbox.MarkerView key={index.toString()} coordinate={marker}>
+                  <MarkerItem index={index} />
+                </Mapbox.MarkerView>
+              );
+            })} */}
 
           <Mapbox.Camera
             ref={mapboxCameraRef}
             animationMode={'flyTo'}
-            followUserMode={UserTrackingMode.Follow}
+            followUserMode={UserTrackingMode.FollowWithCourse}
             followPitch={40}
-            centerCoordinate={[
-              location?.coords?.longitude ? location.coords.longitude : 0,
-              location?.coords?.latitude ? location.coords.latitude : 0,
-            ]}
             animationDuration={500}
             zoomLevel={18}
             followPadding={{
@@ -508,16 +514,6 @@ const MainScreen = () => {
           />
 
           {/* <Poly */}
-
-          {list && list.length > 0
-            ? list.map((marker, index) => {
-                return (
-                  <Mapbox.MarkerView key={index.toString()} coordinate={marker}>
-                    <MarkerItem index={index} />
-                  </Mapbox.MarkerView>
-                );
-              })
-            : null}
         </Mapbox.MapView>
         {status != 'active' && (
           <>
@@ -563,7 +559,9 @@ const MainScreen = () => {
               location != undefined &&
               location?.coords?.speed &&
               location?.coords?.speed > 0
-                ? Math.round(location?.coords?.speed * 3.6 * (elapsedTime / 60))
+                ? Math.round(
+                    location?.coords?.speed * 3.6 * (elapsedTime / 3600),
+                  )
                 : 0
             }
           />

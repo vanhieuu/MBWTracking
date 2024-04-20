@@ -28,4 +28,4 @@ const MarkerItem: FC<MarkerItemProps> = ({index}) => {
     </Block>
   );
 };
-export default React.memo(MarkerItem);
+export default MarkerItem;
