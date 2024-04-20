@@ -14,7 +14,7 @@ import React, {
 } from 'react';
 import isEqual from 'react-fast-compare';
 import {BackHandler, Keyboard, LayoutAnimation, Platform} from 'react-native';
-import {useSelector as useReduxSelector} from 'react-redux';
+import {shallowEqual, useSelector as useReduxSelector} from 'react-redux';
 import debounce from 'lodash.debounce'
 import {RootState} from '@store/all-reducers';
 
@@ -25,9 +25,9 @@ type UseStateFull<T = any> = {
 
 function useSelector<T>(
   selector: (state: RootState) => T,
-  equalityFn = isEqual,
+  equalityFn = shallowEqual,
 ): T {
-  return useReduxSelector<RootState, T>(selector, equalityFn);
+  return useReduxSelector<RootState, T>(selector,equalityFn);
 }
 type ConfigAnimated = {
   duration: number;

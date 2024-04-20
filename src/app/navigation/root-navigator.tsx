@@ -19,7 +19,7 @@ const RootNavigator = () => {
   );
   const isNotEmpty = Object.values(loginState.key_details).some(value => value !== '');
 
-  console.log(loginState,'state')
+
   return (
     <SafeAreaProvider>
       <Stack.Navigator screenOptions={{headerShown: false}}>

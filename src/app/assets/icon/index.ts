@@ -14,7 +14,9 @@ export const icons = {
   MapPinFill:require('./source/mapPin-fill.png'),
   Check:require('./source/check.png'),
   MapDefault:require('./source/mapDefault.png'),
-  MapNight:require('./source/mapNight.png')
+  MapNight:require('./source/mapNight.png'),
+  mapFill:require('./source/fill.png'),
+  shadowImage:require('./source/shadowR.png')
 };
 
 export type IconTypes = keyof typeof icons;

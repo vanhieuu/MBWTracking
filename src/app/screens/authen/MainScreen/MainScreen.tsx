@@ -27,7 +27,6 @@ import {
   height,
   useSelector,
   useTimer,
-  width,
 } from '@common';
 import {shallowEqual} from 'react-redux';
 import BackgroundFetch from 'react-native-background-fetch';
@@ -47,8 +46,8 @@ import Modal from 'react-native-modal';
 const MainScreen = () => {
   const theme = useTheme();
   const mapboxCameraRef = useRef<Mapbox.Camera>(null);
+  // const userLocationRef = useRef<Mapbox.UserLocation>()
   const styles = rootStyles(theme);
-  const appTheme = useSelector(state => state.app.theme, shallowEqual);
 
   //Locations
   const [location, setLocation] = React.useState<Location | any>(null);
@@ -57,21 +56,19 @@ const MainScreen = () => {
   const [isMoving, setIsMoving] = React.useState(false);
   const [modalShow, setModalShow] = React.useState(false);
   const [modalMapShow, setModalMapShow] = React.useState(false);
-
+  const [showUserLocation, setShowUserLocation] = React.useState(true);
   // const [updateLocations, setUpdateLocations] = React.useState<any>({});
-  const [odometer, setOdometer] = React.useState<any>(0);
+
   const [error, setError] = React.useState(
     'Không thể lấy được vị trí GPS. Bạn nên di chuyển đến vị trí không bị che khuất và thử lại.',
   );
-  const [statusError, setStatusError] = React.useState(0);
+  const [batteryLevel, setBatteryLevel] = React.useState(0);
   const [mapURl, setMapURl] = React.useState<string>(MAP_TITLE_URL.adminMap);
   const [status, setStatus] = React.useState('active');
   const loginState = useSelector(
     state => state.login.loginResponse,
     shallowEqual,
   );
-  console.log(Object.values(loginState.key_details), '?');
-  // console.log(loginState.key_details.project_id)
 
   const {elapsedTime, isRunning, toggleTimer} = useTimer();
   const appState = useRef<AppStateStatus>('unknown');
@@ -89,14 +86,7 @@ const MainScreen = () => {
     '@transistorsoft:hasDisclosedBackgroundPermission',
   );
   // console.log(URL)
-
-  React.useEffect(() => {
-    if (location) {
-      setOdometer(location.odometer);
-    } else {
-      return;
-    }
-  }, [location, list]);
+  // userLocationRef.current.
 
   const onDiscloseBackgroundPermission = () => {
     AppModule.storage.set(
@@ -105,6 +95,41 @@ const MainScreen = () => {
     );
   };
 
+  React.useEffect(() => {
+    // Register BackgroundGeolocation event-listeners.
+
+    BackgroundGeolocation.getState().then((state: State) => {
+      setEnabled(state.enabled);
+    });
+    const locationSubscriber: any = BackgroundGeolocation.onLocation(
+      lo => setLocation(lo),
+      error => {
+        backgroundErrorListener(error);
+      },
+    );
+    const motionChangeSubscriber: any = BackgroundGeolocation.onMotionChange(
+      location => {
+        setIsMoving(location.isMoving);
+        setLocation(location);
+      },
+    );
+    const notificationActionSubscriber: any =
+      BackgroundGeolocation.onNotificationAction(button => {
+        console.log('[onNotificationAction]', button);
+      });
+    initBackgroundFetch();
+    initBackgroundGeoLocation();
+    AppState.addEventListener('change', _handleAppStateChange);
+
+    return () => {
+      // When view is destroyed (or refreshed with dev live-reload),
+      // Remove BackgroundGeolocation event-listeners.
+      locationSubscriber.remove();
+      motionChangeSubscriber.remove();
+      clearMarkers();
+      notificationActionSubscriber.remove();
+    };
+  }, []);
   useLayoutEffect(() => {
     if (Platform.OS === 'android' && !hasDisclosedBackgroundPermission) {
       // For Google Play Console Submission:  "disclosure for background permission".
@@ -137,6 +162,7 @@ const MainScreen = () => {
       desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
       distanceFilter: 10,
       stopTimeout: 5,
+
       locationAuthorizationRequest: 'Always',
       backgroundPermissionRationale: {
         title: 'Cho phép MBWTrack truy cập vào vị trí kể cả khi không sử dụng',
@@ -159,7 +185,6 @@ const MainScreen = () => {
 
       enableHeadless: true,
     });
-    setOdometer(state.odometer);
     setEnabled(state.enabled);
     setIsMoving(state.isMoving || false);
   };
@@ -174,6 +199,7 @@ const MainScreen = () => {
 
   const addMarker = (location: Location | any) => {
     setLocation(location);
+
     setList(previous => [
       ...previous,
       [location.coords.longitude, location.coords.latitude],
@@ -181,42 +207,6 @@ const MainScreen = () => {
   };
 
   // console.log(list,'listMarker')
-  React.useEffect(() => {
-    // Register BackgroundGeolocation event-listeners.
-    BackgroundGeolocation.getState().then((state: State) => {
-      setEnabled(state.enabled);
-    });
-    const locationSubscriber: any = BackgroundGeolocation.onLocation(
-      lo => setLocation(lo),
-      error => {
-        console.warn('[onLocation] ERROR: ', error);
-      },
-    );
-    const motionChangeSubscriber: any = BackgroundGeolocation.onMotionChange(
-      location => {
-        setIsMoving(location.isMoving);
-        setLocation(location);
-      },
-    );
-    const notificationActionSubscriber: any =
-      BackgroundGeolocation.onNotificationAction(button => {
-        console.log('[onNotificationAction]', button);
-      });
-    initBackgroundFetch();
-    initBackgroundGeoLocation();
-    AppState.addEventListener('change', _handleAppStateChange);
-
-    return () => {
-      // When view is destroyed (or refreshed with dev live-reload),
-      // Remove BackgroundGeolocation event-listeners.
-      locationSubscriber.remove();
-      motionChangeSubscriber.remove();
-      clearMarkers();
-      notificationActionSubscriber.remove();
-    };
-  }, []);
-
-  initBackgroundGeoLocation();
 
   // useDeepCompareEffect(() => {}, [locations.current]);
 
@@ -230,13 +220,13 @@ const MainScreen = () => {
           setError(
             'Không thể lấy được vị trí GPS. Bạn nên di chuyển đến vị trí không bị che khuất và thử lại.',
           );
-          setStatusError(0);
+          // setStatusError(0);
           setModalShow(true);
           // setEnabled(true);
           break;
         case 1:
           setError('GPS đã bị tắt. Vui lòng bật lại.');
-          setStatusError(1);
+          // setStatusError(1);
           setModalShow(true);
 
           // setEnabled(true);
@@ -245,7 +235,7 @@ const MainScreen = () => {
           setError(
             'Không thể lấy được vị trí GPS. Bạn nên di chuyển đến vị trí không bị che khuất và thử lại.',
           );
-          setStatusError(errorCode);
+          // setStatusError(errorCode);
           setModalShow(true);
 
           // setEnabled(true);
@@ -266,6 +256,7 @@ const MainScreen = () => {
     dispatch(appActions.setTravelHistory([...list]));
     await postLastLocation(location);
   }, [location]);
+
   const initBackgroundFetch = async () => {
     BackgroundFetch.configure(
       {
@@ -284,6 +275,7 @@ const MainScreen = () => {
           samples: 3,
         });
         setLocation(location);
+
         BackgroundFetch.finish(taskId);
       },
       async taskId => {
@@ -298,23 +290,25 @@ const MainScreen = () => {
     if (value) {
       if (state.trackingMode == 1) {
         BackgroundGeolocation.start();
-        onClickGetCurrentPosition();
+        // onClickGetCurrentPosition();
         setIsMoving(true);
+        setShowUserLocation(true);
         // dispatch(appActions.getCustomerRouteAction());
       } else {
         BackgroundGeolocation.startGeofences();
       }
     } else {
       BackgroundGeolocation.stop();
+      setShowUserLocation(false);
       // Toggle the [ > ] / [ || ] button in bottom-toolbar back to [ > ]
       setIsMoving(false);
     }
   };
 
-  const onClickGetCurrentPosition = () => {
-    BackgroundGeolocation.getCurrentPosition({
+  const onClickGetCurrentPosition = useCallback(async () => {
+    await BackgroundGeolocation.getCurrentPosition({
       persist: true,
-      samples: 2,
+      samples: 3,
       timeout: 30,
       maximumAge: 10000,
       extras: {
@@ -322,18 +316,25 @@ const MainScreen = () => {
       },
     })
       .then((location: Location) => {
-        console.log(location, 'get current ? ');
-        setLocation(location);
-
-        mapboxCameraRef.current?.flyTo(
-          [location.coords.longitude, location.coords.latitude],
-          200,
+        setBatteryLevel(
+          location.battery.level > 0
+            ? location.battery.level
+            : -location.battery.level,
         );
+        mapboxCameraRef.current?.moveTo(
+          [location.coords.longitude, location.coords.latitude],
+          100,
+        );
+        setTimeout(() => {
+          mapboxCameraRef.current?.zoomTo(18, 500);
+        }, 1000);
+
+        // mapboxCameraRef.current!.zoomTo(17, 500);
       })
       .catch((error: LocationError) => {
         backgroundErrorListener(error);
       });
-  };
+  }, []);
 
   const _handleAppStateChange = async (nextAppState: AppStateStatus) => {
     appState.current = nextAppState;
@@ -359,10 +360,10 @@ const MainScreen = () => {
     })
       .then((location: Location) => {
         setLocation(location);
-        mapboxCameraRef.current?.flyTo(
-          [location.coords.longitude, location.coords.latitude],
-          1000,
-        );
+        mapboxCameraRef.current?.moveTo([
+          location.coords.longitude,
+          location.coords.latitude,
+        ]);
       })
       .catch((error: LocationError) => {
         backgroundErrorListener(error);
@@ -399,7 +400,7 @@ const MainScreen = () => {
       // BackgroundGeolocation.start();
       onStartTracking();
       setIsMoving(true);
-      BackgroundGeolocation.changePace(!isMoving);
+      BackgroundGeolocation.changePace(true);
       // onClickGetCurrentPosition()
       onClickEnable(true);
     } else {
@@ -409,7 +410,7 @@ const MainScreen = () => {
       toggleTimer();
       onStopTracking();
       onClickEnable(false);
-      BackgroundGeolocation.changePace(!isMoving);
+      BackgroundGeolocation.changePace(false);
       setIsMoving(false);
     }
   };
@@ -423,12 +424,14 @@ const MainScreen = () => {
     (location: RNLocation) => {
       addMarker(location);
       setLocation(location);
-      mapboxCameraRef.current?.setCamera({centerCoordinate:[location.coords.longitude,location.coords.latitude]})
+      mapboxCameraRef.current?.setCamera({
+        centerCoordinate: [location.coords.longitude, location.coords.latitude],
+      });
       mapboxCameraRef.current?.moveTo(
-        [location?.coords?.longitude, location?.coords?.latitude],
-        500,
+        [location.coords.longitude, location.coords.latitude],
+        100,
       );
-      mapboxCameraRef.current?.zoomTo(18, 200);
+      // onClickGetCurrentPosition();
     },
     [location],
   );
@@ -454,28 +457,56 @@ const MainScreen = () => {
           attributionEnabled={false}
           scaleBarEnabled={false}
           zoomEnabled
-          onDidFinishLoadingMap={onClickGetCurrentPosition}
+          onDidFinishLoadingMap={() => {
+            mapboxCameraRef.current?.moveTo([
+              location?.coords?.longitude,
+              location?.coords?.latitude,
+            ]);
+          }}
           scrollEnabled
           logoEnabled={false}
           styleURL={mapURl}
           style={styles.mapView}>
+          <Mapbox.UserLocation
+            visible={showUserLocation}
+            animated
+            androidRenderMode="gps"
+            minDisplacement={10}
+            onUpdate={onUpdateLocation}
+            showsUserHeadingIndicator={true}
+            requestsAlwaysUse={true}
+          />
+          {location != null && (
+            <Mapbox.LocationPuck
+              visible={true}
+              puckBearingEnabled={true}
+              pulsing={{
+                isEnabled: true,
+                color: theme.colors.action,
+                radius: 40,
+              }}
+            />
+          )}
+
           <Mapbox.Camera
             ref={mapboxCameraRef}
             animationMode={'flyTo'}
             followUserMode={UserTrackingMode.Follow}
             followPitch={40}
+            centerCoordinate={[
+              location?.coords?.longitude ? location.coords.longitude : 0,
+              location?.coords?.latitude ? location.coords.latitude : 0,
+            ]}
             animationDuration={500}
             zoomLevel={18}
+            followPadding={{
+              paddingLeft: 20,
+              paddingTop: 20,
+              paddingBottom: 20,
+              paddingRight: 20,
+            }}
           />
-          <Mapbox.UserLocation
-            visible={true}
-            animated
-            androidRenderMode="gps"
-            minDisplacement={5}
-            onUpdate={onUpdateLocation}
-            showsUserHeadingIndicator={true}
-            requestsAlwaysUse={true}
-          />
+
           {/* <Poly */}
 
           {list && list.length > 0
@@ -528,7 +559,13 @@ const MainScreen = () => {
           <ContentView
             title="Quãng đường (km)"
             icon="IconMapping"
-            value={Math.round(odometer / 1000)}
+            value={
+              location != undefined &&
+              location?.coords?.speed &&
+              location?.coords?.speed > 0
+                ? Math.round(location?.coords?.speed * 3.6 * (elapsedTime / 60))
+                : 0
+            }
           />
           <ContentView
             title="Thời gian (phút)"
@@ -546,6 +583,8 @@ const MainScreen = () => {
             title="Vận tốc (km/h)"
             icon="IconOdometer"
             value={
+              location != undefined &&
+              location?.coords?.speed &&
               location?.coords?.speed > 0
                 ? Math.round(location.coords.speed! * 3.6)
                 : 0
@@ -554,13 +593,7 @@ const MainScreen = () => {
           <ContentView
             title="Phần trăm pin (%)"
             icon="IconBattery"
-            value={
-              location && location?.battery?.level
-                ? location?.battery.level < 0
-                  ? -location?.battery.level * 100
-                  : Math.round(location?.battery.level * 100)
-                : 0
-            }
+            value={batteryLevel * 100}
           />
         </Block>
       </Animated.View>
