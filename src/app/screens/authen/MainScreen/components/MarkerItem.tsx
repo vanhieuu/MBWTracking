@@ -1,8 +1,7 @@
-import {ListCustomerRouter} from '@common';
-import {Block, Icon, SvgIcon} from '@components';
+import {Block, SvgIcon} from '@components';
 import {useTheme} from '@theme';
 import React, {FC} from 'react';
-import {TouchableOpacity, Text} from 'react-native';
+import isEqual from 'react-fast-compare';
 
 interface MarkerItemProps {
   index: number;
@@ -28,4 +27,4 @@ const MarkerItem: FC<MarkerItemProps> = ({index}) => {
     </Block>
   );
 };
-export default MarkerItem;
+export default React.memo(MarkerItem,isEqual);

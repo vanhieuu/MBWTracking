@@ -28,7 +28,7 @@ const FormLoginComponents = (props: Props) => {
     usr: '',
     pwd: '',
   });
-  const currentUser = useSelector(state => state.login.userAccount)
+
   const onPressSavePassword = () => {
     if (savePassword) {
       dispatch(loginActions.setSavePassword(false));

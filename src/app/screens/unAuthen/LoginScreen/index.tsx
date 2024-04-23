@@ -1,14 +1,17 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {useTheme} from '@theme';
 import {loginStyle} from './style';
 import {Block, Text} from '@components';
 import isEqual from 'react-fast-compare';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {dispatch, useSelector} from '@common';
+import {dispatch, useGetOnboardingStatus, useSelector} from '@common';
 import {shallowEqual} from 'react-redux';
 import {FormLogin} from './component/formLogin';
 import {loginActions} from '@store/login-reducer/reducer';
+import {Platform} from 'react-native';
 
+import {APP_SCREENS, UnAuthenParamList} from '@navigation/screen-type';
+import {NavigationProp, useNavigation} from '@react-navigation/native';
 type Props = {};
 
 const LoginScreen = (props: Props) => {
@@ -18,10 +21,31 @@ const LoginScreen = (props: Props) => {
     state => state.login.organization,
     shallowEqual,
   );
+  const {isFirstLaunch} = useGetOnboardingStatus();
+
   const onConfirmData = useCallback((data: any) => {
     dispatch(loginActions.setAutoLogin(data));
     dispatch(loginActions.postLogin(data));
   }, []);
+  const {navigate} = useNavigation<NavigationProp<UnAuthenParamList>>();
+
+  const onFirstLaunchLogin = useCallback(
+    (data: any) => {
+      if (!!isFirstLaunch) {
+        if (Platform.OS === 'android') {
+          navigate(APP_SCREENS.REQUEST_PERMISSIONS, data);
+          console.log('run on this screen');
+        } else {
+          console.log('run on that screen');
+          onConfirmData(data);
+        }
+      } else {
+        console.log('run third case');
+        onConfirmData(data);
+      }
+    },
+    [isFirstLaunch],
+  );
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -42,7 +66,7 @@ const LoginScreen = (props: Props) => {
             Đăng nhập
           </Text>
         </Block>
-        <FormLogin onConfirmData={onConfirmData} />
+        <FormLogin onConfirmData={onFirstLaunchLogin} />
       </Block>
     </SafeAreaView>
   );

@@ -20,8 +20,10 @@ import TinyMapPin from './source/tinyMapPin.svg';
 import FlagStart from './source/flag-start.svg';
 import CloseIcon from './source/close.svg';
 import FaceIdIcon from './source/faceID.svg';
-import IconNoti from './source/iconNoti.svg'
+import IconNoti from './source/iconNoti.svg';
+import MapRequest from './source/mapRequest.svg'
 export const SvgComponent = {
+  MapRequest,
   CloseIcon,
   IconNoti,
   FaceIdIcon,

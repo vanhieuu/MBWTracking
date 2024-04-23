@@ -14,9 +14,10 @@ type Props = {
 const HeaderAvatar = ({userInfor}: Props) => {
   const theme = useTheme();
   const styles = headerStyle(theme);
+  console.log(userInfor, ' userInfor')
   return (
     <Block direction="row" alignItems="center" height={72}     >
-      {Object.keys(userInfor).length > 0 ? (
+      { userInfor  &&  Object.keys(userInfor).length > 0 && userInfor.image != null ? (
         <FastImage
           source={{uri: userInfor.image.replaceAll(' ', '%')}}
           style={styles.imageStyle}

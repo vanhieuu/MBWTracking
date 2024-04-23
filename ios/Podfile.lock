@@ -410,6 +410,8 @@ PODS:
     - React-Core
   - react-native-netinfo (11.3.1):
     - React-Core
+  - react-native-restart (0.0.27):
+    - React-Core
   - react-native-safe-area-context (4.9.0):
     - React-Core
   - React-NativeModulesApple (0.72.12):
@@ -615,6 +617,7 @@ DEPENDENCIES:
   - react-native-date-picker (from `../node_modules/react-native-date-picker`)
   - react-native-mmkv (from `../node_modules/react-native-mmkv`)
   - "react-native-netinfo (from `../node_modules/@react-native-community/netinfo`)"
+  - react-native-restart (from `../node_modules/react-native-restart`)
   - react-native-safe-area-context (from `../node_modules/react-native-safe-area-context`)
   - React-NativeModulesApple (from `../node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)
   - React-perflogger (from `../node_modules/react-native/ReactCommon/reactperflogger`)
@@ -720,6 +723,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-mmkv"
   react-native-netinfo:
     :path: "../node_modules/@react-native-community/netinfo"
+  react-native-restart:
+    :path: "../node_modules/react-native-restart"
   react-native-safe-area-context:
     :path: "../node_modules/react-native-safe-area-context"
   React-NativeModulesApple:
@@ -820,6 +825,7 @@ SPEC CHECKSUMS:
   react-native-date-picker: 656d78c3f8a5e79bc1642b8d1c587ce10aab2195
   react-native-mmkv: e2d73a7d37f23918066a4b985a94c9fafc3f20c1
   react-native-netinfo: bdb108d340cdb41875c9ced535977cac6d2ff321
+  react-native-restart: 7595693413fe3ca15893702f2c8306c62a708162
   react-native-safe-area-context: b97eb6f9e3b7f437806c2ce5983f479f8eb5de4b
   React-NativeModulesApple: 694679e4193a49c09f0a76ee27ec09b2c466d59c
   React-perflogger: 63606aeab27683112e1bd4ef25bd099ec1cb03f8

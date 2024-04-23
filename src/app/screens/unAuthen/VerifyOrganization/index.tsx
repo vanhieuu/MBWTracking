@@ -13,7 +13,7 @@ import {
 } from '@config/app.const';
 import FormVerifyOrganization from './component/formVerify';
 import {apiVerifyOrganization} from '@store/api/loginApi';
-import {ResponseGenerator, dispatch, getState} from '@common';
+import {AppModule, ResponseGenerator, dispatch} from '@common';
 import {navigate} from '@navigation/navigation-service';
 import {APP_SCREENS} from '@navigation/screen-type';
 import {loginActions} from '@store/login-reducer/reducer';
@@ -36,10 +36,10 @@ const SelectOrganization = () => {
   const handleChangeLang = () => {
     setShow(!show);
   };
+  
 
   const onConfirmData = async (data: any) => {
     setLoading(true);
-
     const result: ResponseGenerator = await apiVerifyOrganization({
       organization: data,
     });

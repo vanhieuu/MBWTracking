@@ -55,7 +55,9 @@
     "currentPassword":"Mật khâu hiện tại",
     "newPassword":"Mật khẩu mới",
     "confirmNewPassword":"Xác nhận mật khẩu mới",
-    "confirm":"Xác nhận"
+    "confirm":"Xác nhận",
+    "accept":"Cho phép",
+    "decide":"Từ chối"
 
   },
   "noti":{

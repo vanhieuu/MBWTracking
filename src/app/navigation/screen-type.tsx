@@ -1,3 +1,5 @@
+import { NavigatorScreenParams } from "@react-navigation/native";
+
 export enum APP_SCREENS {
   MAIN_SCREEN = 'MAIN_SCREEN',
   LOGIN = 'LOGIN',
@@ -10,7 +12,8 @@ export enum APP_SCREENS {
   UN_AUTHORIZED = 'UN_AUTHORIZED',
   AUTHORIZED = 'AUTHORIZED',
   VERIFY_ORGANIZATION = 'VERIFY_ORGANIZATION',
-  SETTING = 'SETTING'
+  SETTING = 'SETTING',
+  REQUEST_PERMISSIONS = 'REQUEST_PERMISSIONS',
 }
 
 export type UnAuthenParamList = {
@@ -19,7 +22,10 @@ export type UnAuthenParamList = {
     
   };
   [APP_SCREENS.FORGET_PASSWORD]: undefined;
-  [APP_SCREENS.VERIFY_ORGANIZATION]:undefined
+  [APP_SCREENS.VERIFY_ORGANIZATION]:undefined;
+  [APP_SCREENS.REQUEST_PERMISSIONS]:{
+    data:any
+  }
 };
 export type AuthenParamList = {
   [APP_SCREENS.MAIN_SCREEN]: undefined;
@@ -33,7 +39,7 @@ export type AuthenParamList = {
 };
 
 export type RootStackParamsList = {
-  [APP_SCREENS.UN_AUTHORIZED]: undefined;
+  [APP_SCREENS.UN_AUTHORIZED]: NavigatorScreenParams<UnAuthenParamList>;
   [APP_SCREENS.AUTHORIZED]: undefined;
 } & UnAuthenParamList &
   AuthenParamList;

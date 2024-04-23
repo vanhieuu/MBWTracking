@@ -50,6 +50,7 @@ export function* onLogin(action: PayloadAction) {
         const result: ILoginResponse = response.result;
         AppModule.storage.set(Api_key, result.key_details.api_key);
         AppModule.storage.set(Api_secret, result.key_details.api_secret);
+        AppModule.storage.set('loginResult',JSON.stringify(result))
         yield* put(setResponseLogin(result));
         // navigate(APP_SCREENS.AUTHORIZED);
       } else {

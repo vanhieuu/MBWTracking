@@ -34,24 +34,7 @@ const AccountScreen = (props: Props) => {
   const theme = useTheme();
   const styles = rootStyles(theme);
 
-  const animatedValue = useRef(
-    new Animated.Value(Dimensions.get('window').height),
-  ).current;
-  const viewRef = useClickOutside<View>(() => hideAnimation());
-  const startAnimation = () => {
-    Animated.timing(animatedValue, {
-      toValue: Dimensions.get('window').height - 300,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  };
-  const hideAnimation = () => {
-    Animated.timing(animatedValue, {
-      toValue: Dimensions.get('window').height,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
-  };
+
   const onPressLanguage = useCallback(() => {
     console.log(status);
     setShow(prev => !prev);

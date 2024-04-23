@@ -11,12 +11,16 @@ import {
 } from 'react-native';
 import React, {useCallback, useLayoutEffect, useRef} from 'react';
 import {Text, Block, FAB, SvgIcon} from '@components';
-import Mapbox, {UserTrackingMode, Location as RNLocation} from '@rnmapbox/maps';
+import MapboxGL, {
+  UserTrackingMode,
+  Location as RNLocation,
+} from '@rnmapbox/maps';
 import {MAP_TITLE_URL} from '@config/app.const';
 import {AppTheme, useTheme} from '@theme';
 import BackgroundGeolocation, {
   Location,
   LocationError,
+  MotionChangeEvent,
   State,
 } from 'react-native-background-geolocation';
 import {API_EK_KEY, BASE_URL_MAP} from '@config/createApi';
@@ -26,6 +30,7 @@ import {
   formatTime,
   height,
   useEffectOnce,
+  useGetOnboardingStatus,
   useSelector,
   useTimer,
 } from '@common';
@@ -43,11 +48,13 @@ import {dataMap} from './ultil';
 import ModalError from './components/ModalError';
 import {appActions} from '@store/app-reducer/reducer';
 import Modal from 'react-native-modal';
+import RNRestart from 'react-native-restart';
+import Mapbox from '@rnmapbox/maps';
 
 const MainScreen = () => {
   const theme = useTheme();
-  const mapboxCameraRef = useRef<Mapbox.Camera>(null);
-  const userLocationRef = useRef<Mapbox.UserLocation>(null);
+  const mapboxCameraRef = useRef<MapboxGL.Camera>(null);
+  const userLocationRef = useRef<MapboxGL.UserLocation>(null);
 
   const styles = rootStyles(theme);
 
@@ -59,6 +66,8 @@ const MainScreen = () => {
   const [modalShow, setModalShow] = React.useState(false);
   const [modalMapShow, setModalMapShow] = React.useState(false);
   const [showUserLocation, setShowUserLocation] = React.useState(true);
+  const [motionChangeEvent, setMotionChangeEvent] =
+    React.useState<MotionChangeEvent | null>(null);
   // const [updateLocations, setUpdateLocations] = React.useState<any>({});
 
   const [error, setError] = React.useState(
@@ -73,6 +82,8 @@ const MainScreen = () => {
   );
 
   const {elapsedTime, isRunning, toggleTimer} = useTimer();
+  const {isFirstLaunch, isLoading: onboardingIsLoading} =
+    useGetOnboardingStatus();
   const appState = useRef<AppStateStatus>('unknown');
   const URL =
     BASE_URL_MAP +
@@ -95,12 +106,10 @@ const MainScreen = () => {
       '@transistorsoft:hasDisclosedBackgroundPermission',
       'true',
     );
+    BackgroundGeolocation.start();
   };
 
-  useEffectOnce(() => {
-    BackgroundGeolocation.getState().then((state: State) => {
-      setEnabled(state.enabled);
-    });
+  React.useEffect(() => {
     const locationSubscriber: any = BackgroundGeolocation.onLocation(
       lo => setLocation(lo),
       error => {
@@ -110,7 +119,7 @@ const MainScreen = () => {
     const motionChangeSubscriber: any = BackgroundGeolocation.onMotionChange(
       location => {
         setIsMoving(location.isMoving);
-        setLocation(location);
+        // setLocation(location);
       },
     );
     const notificationActionSubscriber: any =
@@ -128,7 +137,7 @@ const MainScreen = () => {
       motionChangeSubscriber.remove();
       notificationActionSubscriber.remove();
     };
-  });
+  }, []);
 
   React.useEffect(() => {
     if (Platform.OS === 'android' && !hasDisclosedBackgroundPermission) {
@@ -151,47 +160,64 @@ const MainScreen = () => {
     }
   }, []);
 
+  const onMotionChange = useCallback(async () => {
+    // console.log(motionChangeEvent?.isMoving,'isMoving')
+    if (motionChangeEvent?.isMoving) {
+      setLocation(motionChangeEvent.location);
+
+      setList(prev => [
+        ...prev,
+        [
+          motionChangeEvent.location.coords.longitude,
+          motionChangeEvent.location.coords.latitude,
+        ],
+      ]);
+      // console.log(location,'location')
+    } else {
+      let state = await BackgroundGeolocation.getState();
+      console.log(state, 'motion change state');
+    }
+  }, [location]);
+
   const initBackgroundGeoLocation = async () => {
-    const state: State = await BackgroundGeolocation.ready({
-      url: URL
-        ? URL
-        : 'https://api.ekgis.vn/v2/tracking/locationHistory/position/6556e471178a1db24ac1a711/655824e13a62d46bf149dced?api_key=LnJqtY8kpTY4ZxAtiT5frqPZUNxkDZBXPRSyCi7P',
+    try {
+      const state: State = await BackgroundGeolocation.ready({
+        url: URL
+          ? URL
+          : 'https://api.ekgis.vn/v2/tracking/locationHistory/position/6556e471178a1db24ac1a711/655824e13a62d46bf149dced?api_key=LnJqtY8kpTY4ZxAtiT5frqPZUNxkDZBXPRSyCi7P',
 
-      desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
-      distanceFilter: 10,
-      stopTimeout: 5,
+        desiredAccuracy: BackgroundGeolocation.DESIRED_ACCURACY_NAVIGATION,
+        distanceFilter: 10,
+        stopTimeout: 5,
 
-      locationAuthorizationRequest: 'Always',
-      backgroundPermissionRationale: {
-        title: 'Cho phép MBWTrack truy cập vào vị trí kể cả khi không sử dụng',
-        message:
-          'Ứng dụng này thu thập dữ liệu vị trí để cho phép ghi lại chuyến đi làm của bạn và tính toán khoảng cách di chuyển',
-        positiveAction: 'Cho phép cấp quyền',
-        negativeAction: 'Hủy bỏ',
-      },
-      // HTTP & Persistence
-      autoSync: true,
-      // autoSyncThreshold: 5,
-      maxBatchSize: 50,
-      batchSync: true,
-      maxDaysToPersist: 14,
-      // Application
-      stopOnTerminate: false,
-      params: {
-        location: location,
-      },
+        locationAuthorizationRequest: 'Always',
+        backgroundPermissionRationale: {
+          title:
+            'Cho phép MBWTrack truy cập vào vị trí kể cả khi không sử dụng',
+          message:
+            'Ứng dụng này thu thập dữ liệu vị trí để cho phép ghi lại chuyến đi làm của bạn và tính toán khoảng cách di chuyển',
+          positiveAction: 'Cho phép cấp quyền',
+          negativeAction: 'Hủy bỏ',
+        },
+        // HTTP & Persistence
+        autoSync: true,
+        // autoSyncThreshold: 5,
+        maxBatchSize: 50,
+        batchSync: true,
+        maxDaysToPersist: 14,
+        // Application
+        stopOnTerminate: false,
+        params: {
+          location: location,
+        },
 
-      enableHeadless: true,
-    });
-    setEnabled(state.enabled);
-    setIsMoving(state.isMoving || false);
-  };
-
-  const addMarker = (location: Location | any) => {
-    setList(previous => [
-      ...previous,
-      [location.coords.longitude, location.coords.latitude],
-    ]);
+        enableHeadless: true,
+      });
+      // setEnabled(state.enabled);
+      setIsMoving(state.isMoving || false);
+    } catch (err) {
+      console.log(error);
+    }
   };
 
   const backgroundErrorListener = useCallback(
@@ -227,19 +253,6 @@ const MainScreen = () => {
     [location, enabled],
   );
 
-  const onStartTracking = async () => {
-    location.extras!.startTime = new Date().toISOString();
-    await postLastLocation(location);
-    userLocationRef.current?.setLocationManager({running: true});
-    onClickGetCurrentPosition();
-  };
-
-  const onStopTracking = useCallback(async () => {
-    location.extras!.endTime = new Date().toISOString();
-    dispatch(appActions.setTravelHistory([...list]));
-    await postLastLocation(location);
-  }, [location]);
-
   const initBackgroundFetch = async () => {
     BackgroundFetch.configure(
       {
@@ -272,10 +285,25 @@ const MainScreen = () => {
     setEnabled(value);
     if (value) {
       if (state.trackingMode == 1) {
-        BackgroundGeolocation.start();
-        // onClickGetCurrentPosition();
-        setIsMoving(value);
-        setShowUserLocation(value);
+        if (isFirstLaunch) {
+          console.log('run on this');
+          AppModule.storage.set('@usesr_onboarded', 'false');
+          BackgroundGeolocation.start();
+          RNRestart.restart();
+          RNRestart.Restart();
+
+          setIsMoving(value);
+          onClickGetCurrentPosition();
+
+          setShowUserLocation(value);
+        } else {
+          console.log('run on that');
+          BackgroundGeolocation.start();
+          onClickGetCurrentPosition();
+          setIsMoving(value);
+          setShowUserLocation(value);
+        }
+
         // dispatch(appActions.getCustomerRouteAction());
       } else {
         BackgroundGeolocation.startGeofences();
@@ -336,6 +364,7 @@ const MainScreen = () => {
   // console.log(list, 'list');
 
   React.useEffect(() => {
+    MapboxGL.locationManager.start(5);
     BackgroundGeolocation.getCurrentPosition({
       persist: true,
       samples: 2,
@@ -355,7 +384,33 @@ const MainScreen = () => {
       .catch((error: LocationError) => {
         backgroundErrorListener(error);
       });
+
+    return () => {
+      MapboxGL.locationManager.stop();
+    };
   }, [enabled]);
+
+  React.useEffect(() => {
+    const subscription = BackgroundGeolocation.onMotionChange(event => {
+      if (event.isMoving) {
+        addMarker(event.location);
+        setLocation(event.location);
+
+        // Alert.alert('Device has just started MOVING');
+      } else {
+        // Alert.alert('Device has just STOPPED');
+      }
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, [location]);
+
+  React.useEffect(() => {
+    if (!motionChangeEvent) return;
+    onMotionChange();
+  }, [motionChangeEvent, location]);
 
   const startAnimation = useCallback(() => {
     Animated.timing(animatedValue, {
@@ -375,6 +430,27 @@ const MainScreen = () => {
       useNativeDriver: true,
     }).start();
   }, [status]);
+  const onStartTracking = useCallback(async () => {
+    location.extras!.startTime = new Date().toISOString();
+    await postLastLocation(location);
+    userLocationRef.current?.setLocationManager({running: true});
+  }, [location]);
+
+  const onStopTracking = useCallback(async () => {
+    location.extras!.endTime = new Date().toISOString();
+    dispatch(appActions.setTravelHistory([...list]));
+    await postLastLocation(location);
+  }, [location]);
+
+  const addMarker = useCallback(
+    (location: Location | any) => {
+      setList(previous => [
+        ...previous,
+        [location.coords.longitude, location.coords.latitude],
+      ]);
+    },
+    [location, list, setLocation],
+  );
 
   const onPressStart = async () => {
     if (status === 'active') {
@@ -397,24 +473,27 @@ const MainScreen = () => {
 
   // console.log(location.coords,'list')
 
-  const renderMarker = useCallback(() => {
-    return (
-      <>
-        {list &&
-          list.length > 0 &&
-          list.map((marker, index) => {
-            return (
-              <Mapbox.PointAnnotation
-                id={index.toString()}
-                key={index.toString()}
-                coordinate={marker}>
-                <MarkerItem index={index} />
-              </Mapbox.PointAnnotation>
-            );
-          })}
-      </>
-    );
-  }, [list.length]);
+  const renderMarker = useCallback(
+    (list: any[]) => {
+      return (
+        <>
+          {list &&
+            list.length > 0 &&
+            list.map((marker, index) => {
+              return (
+                <MapboxGL.PointAnnotation
+                  id={index.toString()}
+                  key={index.toString()}
+                  coordinate={marker}>
+                  <MarkerItem index={index} />
+                </MapboxGL.PointAnnotation>
+              );
+            })}
+        </>
+      );
+    },
+    [location],
+  );
 
   const onUpdateLocation = (location: RNLocation | any) => {
     addMarker(location);
@@ -445,11 +524,18 @@ const MainScreen = () => {
         </Block>
       </TouchableOpacity>
       <Block style={styles.mapView}>
-        <Mapbox.MapView
+        {/* {!hasDisclosedBackgroundPermission ? (
+          <Block justifyContent="center" alignItems="center">
+            <ActivityIndicator size={'large'} color={theme.colors.action} />{' '}
+          </Block>
+        ) : ( */}
+
+        <MapboxGL.MapView
           pitchEnabled={false}
           attributionEnabled={false}
           scaleBarEnabled={false}
           zoomEnabled
+          // onPointerMove={}
           onDidFinishLoadingMap={() => {
             location && location != null
               ? mapboxCameraRef.current?.moveTo([
@@ -462,31 +548,57 @@ const MainScreen = () => {
           logoEnabled={false}
           styleURL={mapURl}
           style={styles.mapView}>
-          {location != null && (
-            <>
-              <Mapbox.UserLocation
-                visible={showUserLocation}
-                animated={true}
-                ref={userLocationRef}
-                androidRenderMode="gps"
-                minDisplacement={10}
-                onUpdate={onUpdateLocation}
-                showsUserHeadingIndicator={showUserLocation}
-                requestsAlwaysUse={true}
-              />
-              <Mapbox.LocationPuck
-                visible={true}
-                puckBearing="course"
-                puckBearingEnabled={true}
-                pulsing={{
-                  isEnabled: true,
-                  color: theme.colors.action,
-                  radius: 40,
-                }}
-              />
-            </>
-          )}
-          {renderMarker()}
+          {location != null &&
+            (Platform.OS === 'android' && hasDisclosedBackgroundPermission ? (
+              <>
+                <MapboxGL.UserLocation
+                  visible={showUserLocation}
+                  animated={true}
+                  ref={userLocationRef}
+                  androidRenderMode="gps"
+                  minDisplacement={10}
+                  onUpdate={onUpdateLocation}
+                  showsUserHeadingIndicator={showUserLocation}
+                  requestsAlwaysUse={true}>
+                  <MapboxGL.LocationPuck
+                    visible={showUserLocation}
+                    puckBearing="course"
+                    puckBearingEnabled={true}
+                    // key={list.le}
+                    pulsing={{
+                      isEnabled: true,
+                      color: theme.colors.action,
+                      radius: 40,
+                    }}
+                  />
+                </MapboxGL.UserLocation>
+              </>
+            ) : (
+              <>
+                <Mapbox.UserLocation
+                  visible={showUserLocation}
+                  animated={true}
+                  ref={userLocationRef}
+                  androidRenderMode="gps"
+                  minDisplacement={10}
+                  onUpdate={onUpdateLocation}
+                  showsUserHeadingIndicator={true}
+                  requestsAlwaysUse={true}
+                />
+                <Mapbox.LocationPuck
+                  visible={showUserLocation}
+                  puckBearing="course"
+                  puckBearingEnabled={true}
+                  // key={list.le}
+                  pulsing={{
+                    isEnabled: true,
+                    color: theme.colors.action,
+                    radius: 40,
+                  }}
+                />
+              </>
+            ))}
+          {renderMarker(list)}
 
           {/* {list &&
             list.length > 0 &&
@@ -498,12 +610,11 @@ const MainScreen = () => {
               );
             })} */}
 
-          <Mapbox.Camera
+          <MapboxGL.Camera
             ref={mapboxCameraRef}
             animationMode={'flyTo'}
             followUserMode={UserTrackingMode.FollowWithCourse}
-            followPitch={40}
-            animationDuration={500}
+            animationDuration={0}
             zoomLevel={18}
             followPadding={{
               paddingLeft: 20,
@@ -514,7 +625,8 @@ const MainScreen = () => {
           />
 
           {/* <Poly */}
-        </Mapbox.MapView>
+        </MapboxGL.MapView>
+
         {status != 'active' && (
           <>
             <FAB
@@ -591,7 +703,7 @@ const MainScreen = () => {
           <ContentView
             title="Phần trăm pin (%)"
             icon="IconBattery"
-            value={batteryLevel * 100}
+            value={Math.round(batteryLevel * 100)}
           />
         </Block>
       </Animated.View>

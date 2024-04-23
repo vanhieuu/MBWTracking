@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {onCheckType} from '@common';
+import {AppModule, onCheckType} from '@common';
 
 import {AppTheme, useTheme} from '@theme';
 import React, {
@@ -15,7 +15,7 @@ import React, {
 import isEqual from 'react-fast-compare';
 import {BackHandler, Keyboard, LayoutAnimation, Platform} from 'react-native';
 import {shallowEqual, useSelector as useReduxSelector} from 'react-redux';
-import debounce from 'lodash.debounce'
+import debounce from 'lodash.debounce';
 import {RootState} from '@store/all-reducers';
 
 type UseStateFull<T = any> = {
@@ -27,7 +27,7 @@ function useSelector<T>(
   selector: (state: RootState) => T,
   equalityFn = shallowEqual,
 ): T {
-  return useReduxSelector<RootState, T>(selector,equalityFn);
+  return useReduxSelector<RootState, T>(selector, equalityFn);
 }
 type ConfigAnimated = {
   duration: number;
@@ -61,10 +61,9 @@ function useAnimatedState<T>(
   return [value, onSetState];
 }
 
-
 export const useDebounce = (
   fnToDebounce: (...args: any[]) => any,
-  durationInMs = 300
+  durationInMs = 300,
 ) => {
   if (isNaN(durationInMs)) {
     throw new TypeError('durationInMs for debounce should be a number');
@@ -80,13 +79,12 @@ export const useDebounce = (
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   return useCallback(
-    debounce(fnToDebounce, durationInMs, { leading: true, trailing: false }),
-    [fnToDebounce, durationInMs]
+    debounce(fnToDebounce, durationInMs, {leading: true, trailing: false}),
+    [fnToDebounce, durationInMs],
   );
 };
 
 export default useDebounce;
-
 
 function useInterval(callback: Function, delay: number) {
   const savedCallback = useRef<Function>();
@@ -333,7 +331,7 @@ const useTimer = () => {
       }, 1000); // Update every 1 second
     } else {
       clearInterval(intervalIdRef.current);
-      setElapsedTime(0)
+      setElapsedTime(0);
     }
 
     return () => clearInterval(intervalIdRef.current);
@@ -343,7 +341,7 @@ const useTimer = () => {
     setIsRunning(prevIsRunning => !prevIsRunning);
   };
 
-  return { elapsedTime, isRunning, toggleTimer };
+  return {elapsedTime, isRunning, toggleTimer};
 };
 
 function useStateFull<T = any>(initial: T): UseStateFull<T> {
@@ -583,7 +581,39 @@ const useDeepCompareEffect = (
   useEffect(callback, [currentDependenciesRef.current]);
 };
 
+async function checkIfFirstLaunch() {
+  try {
+    const hasFirstLaunched = AppModule.storage.getString('@usesr_onboarded');
+    if (hasFirstLaunched === null || hasFirstLaunched === undefined) {
+      return true;
+    }
+    return false;
+  } catch (error) {
+    return false;
+  }
+}
+
+const useGetOnboardingStatus = () => {
+  const [isFirstLaunch, setIsFirstLaunch] = useState(false);
+  const [isFirstLaunchIsLoading, setIsFirstLaunchIsLoading] = useState(true);
+
+  React.useEffect(() => {
+    const asyncF = async () => {
+      const firstLaunch = await checkIfFirstLaunch();
+      setIsFirstLaunch(firstLaunch);
+      setIsFirstLaunchIsLoading(false);
+    };
+    asyncF();
+  }, []);
+
+  return {
+    isFirstLaunch: isFirstLaunch,
+    isLoading: isFirstLaunchIsLoading,
+  };
+};
+
 export {
+  useGetOnboardingStatus,
   useIsMounted,
   useDisableBackHandler,
   useDismissKeyboard,
@@ -606,5 +636,5 @@ export {
   useMounted,
   useIsKeyboardShown,
   useDidMount,
-  useTimer
+  useTimer,
 };

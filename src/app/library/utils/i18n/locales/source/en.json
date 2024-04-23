@@ -51,7 +51,9 @@
     "currentPassword":"Current Password",
     "newPassword":"New Password",
     "confirmNewPassword":"Confirm New Password",
-    "confirm":"Confirm"
+    "confirm":"Confirm",
+    "accept":"Accept",
+    "decide":"Decide"
   },
   "noti":{
     "updateSuccess":"Update Password Success"

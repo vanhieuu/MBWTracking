@@ -6,13 +6,11 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import React from 'react';
-import {AppInput, Block, Icon, SvgIcon, Text} from '@components';
+import {AppInput, Block, Icon, Text} from '@components';
 // import {useTranslation} from 'react-i18next';
 // import {TextInput} from 'react-native-paper';
 import {useTheme} from '@theme';
-import {sleep} from '@common';
-import {navigate} from '@navigation/navigation-service';
-import {APP_SCREENS} from '@navigation/screen-type';
+
 import {formStyle} from '../style';
 
 type Props = {
