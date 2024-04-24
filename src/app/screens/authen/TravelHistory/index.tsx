@@ -1,7 +1,7 @@
 import {ActivityIndicator, FlatList} from 'react-native';
 import React, {useCallback, useRef, useState} from 'react';
 import isEqual from 'react-fast-compare';
-import {AppHeaderContent, Block} from '@components';
+import {AppHeaderContent, Block, SkeletonLoading} from '@components';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {rootStyle} from './style';
 import {useTheme} from '@theme';
@@ -28,7 +28,7 @@ const TravelHistory = () => {
     shallowEqual,
   );
 
-  console.log(listTravelHistory,'history')
+  console.log(listTravelHistory, 'history');
   useDeepCompareEffect(() => {
     const startOfDay = currentDate.current;
 
@@ -77,22 +77,25 @@ const TravelHistory = () => {
         title="Lịch sử di chuyển"
         onPress={() => setShowPicker(true)}
       />
-
-      <FlatList
-        data={listTravelHistory.positions}
-        keyExtractor={(item, index) => index.toString()}
-        showsVerticalScrollIndicator={false}
-        decelerationRate={'fast'}
-        renderItem={({item, index}) => {
-          return (
-            <TravelItem
-              item={item}
-              index={index}
-              data={listTravelHistory.positions}
-            />
-          );
-        }}
-      />
+      {loading ? (
+        <SkeletonLoading />
+      ) : (
+        <FlatList
+          data={listTravelHistory.positions}
+          keyExtractor={(item, index) => index.toString()}
+          showsVerticalScrollIndicator={false}
+          decelerationRate={'fast'}
+          renderItem={({item, index}) => {
+            return (
+              <TravelItem
+                item={item}
+                index={index}
+                data={listTravelHistory.positions}
+              />
+            );
+          }}
+        />
+      )}
 
       <ModalPicker
         setShowPicker={setShowPicker}
