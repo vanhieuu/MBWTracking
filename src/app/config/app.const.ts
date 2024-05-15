@@ -37,14 +37,14 @@ export type IResOrganization = {
 export const LANG_LIST: LanguageItemType[] = [
   {
     id: '1',
-    label: 'Tiếng Việt',
+    label: 'label:Vietnamese',
     code: 'vi',
     image: 'VNFLag',
     isSelected: true,
   },
   {
     id: '2',
-    label: 'English',
+    label: 'label:English',
     code: 'en',
     image: 'ENFlag',
     isSelected: false,

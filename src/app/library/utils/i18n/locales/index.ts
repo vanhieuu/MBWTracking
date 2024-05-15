@@ -1,5 +1,5 @@
 /* eslint-disable camelcase */
 /* eslint-disable @typescript-eslint/no-var-requires */
-const vi_VN = require('./source/vi.json');
-const es_US = require('./source/en.json');
-export const resources = {vi_VN, es_US};
+export const vi_VN = require('./source/vi.json');
+export const en_US = require('./source/en.json');
+export const resources = {vi:vi_VN, en:en_US};

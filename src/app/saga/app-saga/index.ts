@@ -10,11 +10,11 @@ import {
 import {call, put} from 'typed-redux-saga';
 import {apiVerifyOrganization} from '../../store/api/loginApi';
 import {STT_OK} from '@config/api.const';
-import {goBack, navigate} from '@navigation/navigation-service';
+import { navigate} from '@navigation/navigation-service';
 import {APP_SCREENS} from '@navigation/screen-type';
 import {loginActions} from '@store/login-reducer/reducer';
 import {showSnack} from '@components';
-import {translate} from '@utils';
+
 
 export function* getListCustomerRouter(action: PayloadAction) {
   if (appActions.getCustomerRouteAction.match(action)) {

@@ -7,6 +7,7 @@ import {navigate} from '@navigation/navigation-service';
 import {AppTheme} from '@theme';
 import {itemStyle} from './style';
 import {Switch} from 'react-native-paper';
+import { translate } from '@utils';
 
 type Props = {
   data: ItemType;
@@ -33,7 +34,7 @@ const ItemSetting = (props: Props) => {
             lineHeight={24}
             fontWeight="400"
             colorTheme="text_primary">
-            {props.data.title}
+            {translate(props.data.title) as string}
           </Text>
         </Block>
       </Block>

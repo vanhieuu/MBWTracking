@@ -21,6 +21,7 @@ import {STT_OK} from '@config/api.const';
 import {TouchableOpacity} from 'react-native';
 import i18n from '@library/utils/i18n/i18n';
 import Modal from 'react-native-modal';
+import { translate } from '@utils';
 // import {dispatch} from '@common';
 
 type Props = {};
@@ -53,7 +54,7 @@ const SelectOrganization = () => {
     } else {
       setLoading(false);
       showSnack({
-        msg: 'Có lỗi xảy ra, vui lòng thử lại',
+        msg: translate('error:errorLogin') as string,
         type: 'error',
         interval: 2000,
       });
@@ -93,7 +94,7 @@ const SelectOrganization = () => {
             <Icon icon={item.image} size={24} resizeMode="contain" />
             <Block marginLeft={8}>
               <Text fontSize={16} colorTheme="text_primary">
-                {item.label}
+              {translate(item.label) as string}
               </Text>
             </Block>
           </Block>

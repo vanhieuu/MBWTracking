@@ -15,7 +15,7 @@ const LangItemComponent: FC<LangItemProps> = ({styles, flagSource, onPress}) => 
       style={[style.root as ViewStyle, {...styles}]}
       onPress={onPress}>
       <Icon
-        icon={flagSource ? 'VNFLag' : 'ENFlag'}
+        icon={flagSource as any}
         imageStyle={{width: 24, height: 16, marginRight: 8}}
         resizeMode={'cover'}
       />

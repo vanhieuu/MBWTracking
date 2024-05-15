@@ -364,6 +364,7 @@ const MainScreen = () => {
   // console.log(list, 'list');
 
   React.useEffect(() => {
+    
     MapboxGL.locationManager.start(5);
     BackgroundGeolocation.getCurrentPosition({
       persist: true,
@@ -498,6 +499,7 @@ const MainScreen = () => {
   const onUpdateLocation = (location: RNLocation | any) => {
     addMarker(location);
     setLocation(location);
+  
     mapboxCameraRef.current?.setCamera({
       centerCoordinate: [location.coords.longitude, location.coords.latitude],
     });

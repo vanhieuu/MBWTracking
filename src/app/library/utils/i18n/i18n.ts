@@ -1,40 +1,27 @@
-import i18n, {LanguageDetectorAsyncModule} from 'i18next';
+import i18n from 'i18next';
 import {initReactI18next} from 'react-i18next';
 
-import {resources} from './locales';
+import {en_US, resources, vi_VN} from './locales';
+import i18next from 'i18next';
 
-const languageDetector: LanguageDetectorAsyncModule = {
-  type: 'languageDetector',
-  async: true, // flags below detection to be async
-  detect: (callback: any) => {
-    callback('vi_VN');
-  },
-  init: () => {},
-  cacheUserLanguage: () => {},
-};
+
 /**
  * Config i18n for app
  */
-i18n
-  .use(languageDetector)
-  .use(initReactI18next)
-  .init({
-    fallbackLng: 'vi_VN',
+i18next.use(initReactI18next).init({
+  compatibilityJSON: 'v3',
+  interpolation: {
+    // React already does escaping
+    escapeValue: false,
+  },
+  lng:'vi',
+  resources: {
+    en:en_US,
+    vi:vi_VN
+  },
+  defaultNS: 'common',
+  fallbackNS: 'common',
+});
 
-    resources: resources,
-
-    // have a common namespace used around the full app
-    ns: ['common'],
-    defaultNS: 'common',
-    debug: false,
-
-    // cache: {
-    //   enabled: true
-    // },
-
-    interpolation: {
-      escapeValue: false, // not needed for react as it does escape per default to prevent xss!
-    },
-  });
 
 export default i18n;

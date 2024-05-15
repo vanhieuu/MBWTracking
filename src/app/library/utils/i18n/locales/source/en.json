@@ -53,9 +53,16 @@
     "confirmNewPassword":"Confirm New Password",
     "confirm":"Confirm",
     "accept":"Accept",
-    "decide":"Decide"
+    "decide":"Decide",
+    "travelHistory":"Travel History",
+    "language":"Language",
+    "theme":"Theme"
   },
   "noti":{
     "updateSuccess":"Update Password Success"
+  },
+  "label":{
+    "Vietnamese":"Vietnamese",
+    "English":"English"
   }
 }

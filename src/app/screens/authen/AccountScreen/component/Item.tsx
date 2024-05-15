@@ -9,6 +9,7 @@ import {navigate} from '@navigation/navigation-service';
 import {Switch} from 'react-native-paper';
 import {dispatch} from '@common';
 import {appActions} from '@store/app-reducer/reducer';
+import { translate } from '@utils';
 
 type Props = {
   data: ItemType;
@@ -22,6 +23,7 @@ const Item = (props: Props) => {
   const styles = itemStyle(theme);
 
   const {status = 'inActive'} = props;
+
 
   return (
     <TouchableOpacity
@@ -41,13 +43,13 @@ const Item = (props: Props) => {
             lineHeight={24}
             fontWeight="400"
             colorTheme="text_primary">
-            {props.data.title}
+            {translate(props.data.title) as string}
           </Text>
         </Block>
       </Block>
       {props.data.dropAble ? (
         <LangItem
-          flagSource={props.langCode === 'vi' ? 'VNFLag' : 'ENFlag'}
+          flagSource={props.langCode === 'vi' ? 'VNFLag' : props.langCode === 'en' ? 'ENFlag' : 'VNFLag'}
           onPress={() => props.onPressChangeLang()}
           styles={{marginTop: 24}}
         />

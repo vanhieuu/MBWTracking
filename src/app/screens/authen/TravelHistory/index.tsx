@@ -5,13 +5,8 @@ import {AppHeaderContent, Block, SkeletonLoading} from '@components';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {rootStyle} from './style';
 import {useTheme} from '@theme';
-import {
-  MapResponse,
-  dispatch,
-  useDeepCompareEffect,
-  useSelector,
-} from '@common';
-import {appActions} from '@store/app-reducer/reducer';
+import {MapResponse, useDeepCompareEffect, useSelector} from '@common';
+
 import {shallowEqual} from 'react-redux';
 import ModalPicker from './components/ModalPicker';
 import TravelItem from './components/TravelItem';
@@ -28,7 +23,6 @@ const TravelHistory = () => {
     shallowEqual,
   );
 
-  console.log(listTravelHistory, 'history');
   useDeepCompareEffect(() => {
     const startOfDay = currentDate.current;
 

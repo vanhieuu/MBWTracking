@@ -14,10 +14,11 @@ import {listItem} from './type';
 import Item from './component/Item';
 import {loginActions} from '@store/login-reducer/reducer';
 import {LANG_LIST, LanguageItemType, Language_Code} from '@config/app.const';
-import i18n from '@library/utils/i18n/i18n';
+
 import {useMMKVString} from 'react-native-mmkv';
 import Modal from 'react-native-modal';
-import {useClickOutside} from 'react-native-click-outside';
+import i18n from '@library/utils/i18n/i18n';
+import { translate } from '@utils';
 
 type Props = {};
 
@@ -34,14 +35,14 @@ const AccountScreen = (props: Props) => {
   const theme = useTheme();
   const styles = rootStyles(theme);
 
-
   const onPressLanguage = useCallback(() => {
-    console.log(status);
+    console.log(status, 'onPress change lang');
     setShow(prev => !prev);
-  }, []);
+  }, [langCode]);
 
-  const onSelectItem = (id: string, code: string) => {
+  const onSelectItem = async (id: string, code: string) => {
     // hideAnimation();
+  
     const newLangData = langData.map(item => {
       if (item.id === id) {
         return {...item, isSelected: true};
@@ -52,7 +53,7 @@ const AccountScreen = (props: Props) => {
     setLangData(newLangData);
     setLangCode(code);
 
-    i18n.changeLanguage(code);
+    await i18n.changeLanguage(code);
   };
 
   React.useEffect(() => {
@@ -92,7 +93,7 @@ const AccountScreen = (props: Props) => {
             <Icon icon={item.image} size={24} resizeMode="contain" />
             <Block marginLeft={8}>
               <Text fontSize={16} colorTheme="text_primary">
-                {item.label}
+                {translate(item.label) as string}
               </Text>
             </Block>
           </Block>
@@ -161,7 +162,7 @@ const AccountScreen = (props: Props) => {
         onBackButtonPress={() => {
           setShow(prev => !prev);
         }}
-        style={{marginHorizontal:0}}
+        style={{marginHorizontal: 0}}
         onBackdropPress={() => {
           setShow(prev => !prev);
         }}

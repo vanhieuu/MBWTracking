@@ -57,10 +57,17 @@
     "confirmNewPassword":"Xác nhận mật khẩu mới",
     "confirm":"Xác nhận",
     "accept":"Cho phép",
-    "decide":"Từ chối"
+    "decide":"Từ chối",
+    "travelHistory":"Lịch sử di chuyển",
+    "language":"Ngôn ngữ",
+    "theme":"Chủ đề"
 
   },
   "noti":{
     "updateSuccess":"Cập nhật mật khẩu mới thành công"
+  },
+  "label":{
+    "Vietnamese":"Tiếng Việt",
+    "English":"Tiếng Anh"
   }
 }

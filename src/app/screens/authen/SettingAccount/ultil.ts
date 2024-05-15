@@ -12,19 +12,19 @@ export type ItemType = {
 
 export const AccountItem:ItemType[] = [
     {
-        title:translate('title:enableFaceID'),
+        title:'title:enableFaceID',
         isSwitch:true,
         screen:"",
         icon:'FaceIdIcon'
     },
     {
-        title:translate('title:changePassword'),
+        title:'title:changePassword',
         isSwitch:false,
         screen:APP_SCREENS.CHANGE_PASSWORD,
         icon:'IconSetting'
     },
     // {
-    //     title:translate('title:notificationSettings'),
+    //     title:'title:notificationSettings'),
     //     isSwitch:false,
     //     screen:"",
     //     icon:'IconNoti'
